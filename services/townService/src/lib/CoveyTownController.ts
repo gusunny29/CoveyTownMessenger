@@ -1,6 +1,9 @@
+import { Socket } from 'dgram';
+import { Session } from 'inspector';
 import { customAlphabet, nanoid } from 'nanoid';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
+import Chat from '../types/Chat';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
 import PlayerSession from '../types/PlayerSession';
@@ -79,12 +82,19 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
+  /** Mapping each unique player id to its corresponding socket * */
+  private _socketSessionMap: Map<string, Socket> = new Map();
+
+  /** The list of active chats associated with this town */
+  private _chats: Chat[];
+
   constructor(friendlyName: string, isPubliclyListed: boolean) {
     this._coveyTownID = process.env.DEMO_TOWN_ID === friendlyName ? friendlyName : friendlyNanoID();
     this._capacity = 50;
     this._townUpdatePassword = nanoid(24);
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
+    this._chats = [];
   }
 
   /**
@@ -165,8 +175,8 @@ export default class CoveyTownController {
    * @param player Player to remove from conversation area
    * @param conversation Conversation area to remove player from
    */
-  removePlayerFromConversationArea(player: Player, conversation: ServerConversationArea) : void {
-    conversation.occupantsByID.splice(conversation.occupantsByID.findIndex(p=>p === player.id), 1);
+  removePlayerFromConversationArea(player: Player, conversation: ServerConversationArea): void {
+    conversation.occupantsByID.splice(conversation.occupantsByID.findIndex(p => p === player.id), 1);
     if (conversation.occupantsByID.length === 0) {
       this._conversationAreas.splice(this._conversationAreas.findIndex(conv => conv === conversation), 1);
       this._listeners.forEach(listener => listener.onConversationAreaDestroyed(conversation));
@@ -193,17 +203,17 @@ export default class CoveyTownController {
       eachExistingConversation => eachExistingConversation.label === _conversationArea.label,
     ))
       return false;
-    if (_conversationArea.topic === ''){
+    if (_conversationArea.topic === '') {
       return false;
     }
-    if (this._conversationAreas.find(eachExistingConversation => 
-      CoveyTownController.boxesOverlap(eachExistingConversation.boundingBox, _conversationArea.boundingBox)) !== undefined){
+    if (this._conversationAreas.find(eachExistingConversation =>
+      CoveyTownController.boxesOverlap(eachExistingConversation.boundingBox, _conversationArea.boundingBox)) !== undefined) {
       return false;
     }
-    const newArea :ServerConversationArea = Object.assign(_conversationArea);
+    const newArea: ServerConversationArea = Object.assign(_conversationArea);
     this._conversationAreas.push(newArea);
     const playersInThisConversation = this.players.filter(player => player.isWithin(newArea));
-    playersInThisConversation.forEach(player => {player.activeConversationArea = newArea;});
+    playersInThisConversation.forEach(player => { player.activeConversationArea = newArea; });
     newArea.occupantsByID = playersInThisConversation.map(player => player.id);
     this._listeners.forEach(listener => listener.onConversationAreaUpdated(newArea));
     return true;
@@ -216,7 +226,7 @@ export default class CoveyTownController {
    * @param box2 
    * @returns true if the boxes overlap, otherwise false
    */
-  static boxesOverlap(box1: BoundingBox, box2: BoundingBox):boolean{
+  static boxesOverlap(box1: BoundingBox, box2: BoundingBox): boolean {
     // Helper function to extract the top left (x1,y1) and bottom right corner (x2,y2) of each bounding box
     const toRectPoints = (box: BoundingBox) => ({ x1: box.x - box.width / 2, x2: box.x + box.width / 2, y1: box.y - box.height / 2, y2: box.y + box.height / 2 });
     const rect1 = toRectPoints(box1);
@@ -261,6 +271,32 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach(listener => listener.onTownDestroyed());
+  }
+
+  /**
+   * Adds a mapping between a player and its corresponding socket to _socketSessionMap
+   *
+   * @param socket represents the socket associated with this player 
+   * @param newPlayer represents the player associated with this socket 
+   */
+  addPlayerSocketMapping(socket: Socket, newPlayer: Player): void {
+    this._socketSessionMap.set(newPlayer.id, socket);
+  }
+
+  /**
+   * Removes a player from the given chat 
+   *
+   * @param playerID represents the player we are removing 
+   * @param chatID represents the chat we are removing the player from 
+   */
+  removePlayerFromChat(playerID: string, chatID: string): void {
+    const chat = this._chats.find(c => c.getChatID() === chatID);
+    if (chat) {
+      chat.removePlayer(playerID);
+      if (chat.getPlayers().length === 0) {
+        this._chats.splice(this._chats.findIndex(ch => ch === chat), 1);
+      }
+    }
   }
 
 }
