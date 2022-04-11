@@ -35,8 +35,8 @@ export default class Chat {
      * Rempves the given player from the Chat
      * @param playerID represents the unique player's id
      */
-    public removePlayer(playerID: string): void {
-        this._recipientIDs.delete(playerID);
+    public removePlayer(playerID: string): boolean {
+        const deleted  = this._recipientIDs.delete(playerID);
 
         // if player being removed is currently the author -> set the new author to be the eldest member 
         if (playerID === this._authorID) {
@@ -46,6 +46,8 @@ export default class Chat {
                 this._authorID = newAuthorID;
             }
         }
+
+        return deleted;
     }
 
     /**

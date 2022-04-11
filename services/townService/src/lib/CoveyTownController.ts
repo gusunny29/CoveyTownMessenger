@@ -292,10 +292,15 @@ export default class CoveyTownController {
   removePlayerFromChat(playerID: string, chatID: string): void {
     const chat = this._chats.find(c => c.getChatID() === chatID);
     if (chat) {
-      chat.removePlayer(playerID);
+      if (!chat.removePlayer(playerID)) {
+        console.log("No player matching the given playerID in this chat!");
+      }
       if (chat.getPlayers().length === 0) {
         this._chats.splice(this._chats.findIndex(ch => ch === chat), 1);
       }
+    }
+    else {
+      console.log("No chat matching the given chatID!");
     }
   }
 
