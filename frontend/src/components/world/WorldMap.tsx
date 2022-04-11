@@ -298,7 +298,7 @@ class CoveyGameScene extends Phaser.Scene {
         this.lastLocation.rotation = primaryDirection || 'front';
         this.lastLocation.moving = isMoving;
         if (this.currentConversationArea) {
-          if(this.currentConversationArea.conversationArea){
+          if (this.currentConversationArea.conversationArea) {
             this.lastLocation.conversationLabel = this.currentConversationArea.label;
           }
           if (
@@ -513,7 +513,7 @@ class CoveyGameScene extends Phaser.Scene {
         if (conv?.conversationArea) {
           this.infoTextBox?.setVisible(false);
         } else {
-          if (cursorKeys.space.isDown) {
+          if (cursorKeys.space.isDown && !this.paused) {
             const newConversation = new ConversationArea(
               conversationLabel,
               BoundingBox.fromSprite(conversationSprite as Phaser.GameObjects.Sprite),
@@ -625,7 +625,7 @@ class CoveyGameScene extends Phaser.Scene {
   pause() {
     if (!this.paused) {
       this.paused = true;
-      if(this.player){
+      if (this.player) {
         this.player?.sprite.anims.stop();
         const body = this.player.sprite.body as Phaser.Physics.Arcade.Body;
         body.setVelocity(0);
