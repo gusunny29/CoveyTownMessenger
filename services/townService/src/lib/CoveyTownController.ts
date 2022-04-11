@@ -304,4 +304,14 @@ export default class CoveyTownController {
     }
   }
 
+    /**
+   * Creates a chat and adds it to the town's list of chats
+   *
+   * @param authorID represents the unique ID of the chat's author
+   * @param chatName represents the name of the chat
+   */
+     createChat(authorID: string, chatName: string): void {
+      const chat = new Chat(authorID, chatName); 
+      this._chats.push(chat);
+    }
 }

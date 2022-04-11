@@ -92,6 +92,15 @@ export interface ResponseEnvelope<T> {
 }
 
 /**
+ * Payload sent by client to create a Chat in Covey.Town
+ */
+ export interface ChatCreateRequest {
+  coveyTownID: string;
+  authorID: string;
+  chatName: string;
+}
+
+/**
  * A handler to process a player's request to join a town. The flow is:
  *  1. Client makes a TownJoinRequest, this handler is executed
  *  2. Client uses the sessionToken returned by this handler to make a subscription to the town,
@@ -169,6 +178,27 @@ export function townUpdateHandler(requestData: TownUpdateRequest): ResponseEnvel
     isOK: success,
     response: {},
     message: !success ? 'Invalid password or update values specified. Please double check your town update password.' : undefined,
+  };
+
+}
+
+export function chatCreateHandler(requestData: ChatCreateRequest): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+  
+  coveyTownController.createChat(requestData.authorID, requestData.chatName);
+
+  return {
+    isOK: true,
+    response: {},
+    message: undefined,
   };
 
 }
