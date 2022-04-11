@@ -27,6 +27,12 @@ declare global {
   interface Error {
     code: undefined;
   }
+
+  interface Disclosure {
+    isOpen: boolean;
+    onClose: () => void;
+    onOpen: () => void;
+  }
 }
 
 export type Callback = (...args: any[]) => void;

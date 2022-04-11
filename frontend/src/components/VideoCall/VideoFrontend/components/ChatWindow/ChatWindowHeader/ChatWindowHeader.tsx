@@ -1,7 +1,8 @@
-import { CloseButton, Flex, Heading, HStack, IconButton } from '@chakra-ui/react';
+import { CloseButton, Flex, Heading, HStack, IconButton, useDisclosure } from '@chakra-ui/react';
 import React from 'react';
 import useChatContext from '../../../hooks/useChatContext/useChatContext';
 import AddIcon from '../../../icons/AddIcon';
+import { CreateChatModal } from '../ChatModals/CreateChatModal';
 
 export default function ChatWindowHeader({
   title,
@@ -11,6 +12,11 @@ export default function ChatWindowHeader({
   showAddButton: boolean;
 }) {
   const { setIsChatWindowOpen } = useChatContext();
+  const {
+    isOpen: isCreateChatModalOpen,
+    onClose: onCloseCreateChatModal,
+    onOpen: onOpenCreateChatModal,
+  } = useDisclosure();
 
   return (
     <Flex
@@ -22,9 +28,21 @@ export default function ChatWindowHeader({
       paddingX='1em'>
       <Heading size='sm'>{title}</Heading>
       <HStack>
-        {showAddButton && <IconButton icon={<AddIcon />} size='sm' aria-label='new-chat' />}
+        {showAddButton && (
+          <IconButton
+            icon={<AddIcon />}
+            size='sm'
+            aria-label='new-chat'
+            onClick={onOpenCreateChatModal}
+          />
+        )}
         <CloseButton onClick={() => setIsChatWindowOpen(false)} />
       </HStack>
+      <CreateChatModal
+        isOpen={isCreateChatModalOpen}
+        onClose={onCloseCreateChatModal}
+        onOpen={onOpenCreateChatModal}
+      />
     </Flex>
   );
 }
