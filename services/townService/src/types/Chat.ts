@@ -12,15 +12,18 @@ export default class Chat {
 
     private _authorID: string;
 
+    private _chatName: string;
+
     /**
        * Create a new Chat
        *
        * @param authorID unique ID associated with the author of the chat
        */
-    public constructor(authorID: string) {
+    public constructor(authorID: string, chatName: string) {
         this._authorID = authorID;
         this._recipientIDs.set(authorID, new Date());
         this._chatID = nanoid();
+        this._chatName = chatName;
     };
 
     /**
@@ -64,6 +67,20 @@ export default class Chat {
     public getChatID(): string {
         return this._chatID; 
     }
+
+    /**
+       * Sets the chat name
+       */
+         public setChatName(chatName: string): void {
+            this._chatName = chatName; 
+        }
+
+    /**
+       * Returns the chat name
+       */
+         public getChatName(): string {
+            return this._chatName; 
+        }
 
     private findNewAuthorID(): string | undefined {
         const oldestJoinDate = Array.from(this._recipientIDs.values()).sort(function(a,b){
