@@ -1,5 +1,5 @@
-import { Socket } from 'dgram';
 import { customAlphabet, nanoid } from 'nanoid';
+import { Socket } from 'socket.io';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import Chat from '../types/Chat';
