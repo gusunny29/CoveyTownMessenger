@@ -365,9 +365,11 @@ export default class CoveyTownController {
    *
    * @param authorID represents the unique ID of the chat's author
    * @param chatName represents the name of the chat
+   * @returns whether or not the chat was created successfully
    */
-  createChat(authorID: string, chatName: string): void {
+  createChat(authorID: string, chatName: string): boolean {
     const chat = new Chat(authorID, chatName);
     this._chats.push(chat);
+    return !!chat;
   }
 }

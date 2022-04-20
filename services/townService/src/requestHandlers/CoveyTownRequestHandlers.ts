@@ -99,7 +99,7 @@ export interface ResponseEnvelope<T> {
  */
 export interface ChatCreateRequest {
   coveyTownID: string;
-  authorID: string;
+  sessionToken: string;
   chatName: string;
 }
 
@@ -226,12 +226,19 @@ export function chatCreateHandler(
     };
   }
 
-  coveyTownController.createChat(requestData.authorID, requestData.chatName);
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  const chatCreated = coveyTownController.createChat(session.player.id, requestData.chatName);
 
   return {
-    isOK: true,
+    isOK: chatCreated,
     response: {},
-    message: undefined,
   };
 }
 
