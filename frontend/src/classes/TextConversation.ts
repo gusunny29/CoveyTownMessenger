@@ -13,15 +13,21 @@ export default class TextConversation {
 
   private _authorName: string;
 
+  _occupants: string[];
+
+  _chatID: string;
+
   /**
    * Create a new Text Conversation
    *
    * @param socket socket to use to send/receive messages
    * @param authorName name of message author to use as sender
    */
-  public constructor(socket: Socket, authorName: string) {
+  public constructor(socket: Socket, authorID: string, chatID: string) {
+    this._chatID = chatID;
+    this._occupants = [];
     this._socket = socket;
-    this._authorName = authorName;
+    this._authorName = authorID;
     this._socket.on('chatMessage', (message: ChatMessage) => {
       message.dateCreated = new Date(message.dateCreated);
       this.onChatMessage(message);
@@ -38,6 +44,7 @@ export default class TextConversation {
    */
   public sendMessage(message: string) {
     const msg: ChatMessage = {
+      chatID: this._chatID,
       sid: nanoid(),
       body: message,
       author: this._authorName,
@@ -69,11 +76,41 @@ export default class TextConversation {
   public close(): void {
     this._socket.off('chatMessage');
   }
+
+  public static fromServerChat(socket: Socket, chat: ServerChat): TextConversation {
+    return new TextConversation(socket, chat._authorID, chat._chatID);
+  }
+
+  public addPlayers(players: string[]) {
+    this._occupants = this._occupants.concat(players);
+  }
+
+  public removePlayers(players: string[]) {
+    this._occupants = this._occupants.filter(p => !players.includes(p));
+  }
 }
 type MessageCallback = (message: ChatMessage) => void;
 export type ChatMessage = {
+  chatID: string;
   author: string;
   sid: string;
   body: string;
   dateCreated: Date;
 };
+
+interface ServerChat {
+  _chatID: string;
+  _recipientIDs: string[];
+  _authorID: string;
+  _chatName: string;
+}
+
+export interface PlayersAddedToChatEvent {
+  chat: ServerChat;
+  newPlayers: string[];
+}
+
+export interface PlayersRemovedFromChatEvent {
+  chat: ServerChat;
+  removedPlayers: string[];
+}

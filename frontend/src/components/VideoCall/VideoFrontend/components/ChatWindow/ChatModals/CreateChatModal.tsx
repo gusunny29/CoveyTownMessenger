@@ -23,7 +23,7 @@ interface CreateChatModalProps {
 
 export const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClose, onOpen }) => {
   const players = usePlayersInTown();
-  const { myPlayerID } = useCoveyAppState();
+  const { myPlayerID, apiClient, sessionToken, currentTownID } = useCoveyAppState();
   const [chatName, setChatName] = useState('');
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
 
@@ -38,16 +38,24 @@ export const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClos
     }
   }, [textInputFocused]);
 
+  const handleCreateChat = () => {
+    if (apiClient && sessionToken && chatName) {
+      apiClient
+        .createChat({ sessionToken, chatName, coveyTownID: currentTownID })
+        .then(() => {
+          onClose();
+        })
+        .catch(() => {});
+    }
+  };
+
   return (
     <GenericManageChatModal
       isOpen={isOpen}
       onClose={onClose}
       onOpen={onOpen}
       title='Create a Chat'
-      onSave={() => {
-        // TODO: This is where you would call the API to create the chat
-        onClose();
-      }}>
+      onSave={handleCreateChat}>
       <FormControl>
         <FormLabel>Chat Name</FormLabel>
         <Input

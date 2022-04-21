@@ -1,5 +1,9 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
-import TextConversation, { ChatMessage } from '../../../../../classes/TextConversation';
+import TextConversation, {
+  ChatMessage,
+  PlayersAddedToChatEvent,
+  PlayersRemovedFromChatEvent,
+} from '../../../../../classes/TextConversation';
 import useCoveyAppState from '../../../../../hooks/useCoveyAppState';
 
 type ChatContextType = {
@@ -8,6 +12,8 @@ type ChatContextType = {
   hasUnreadMessages: boolean;
   messages: ChatMessage[];
   conversation: TextConversation | null;
+  chats: Map<TextConversation, ChatMessage[]>;
+  selectedChat: TextConversation | null;
 };
 
 export const ChatContext = createContext<ChatContextType>(null!);
@@ -19,6 +25,8 @@ export const ChatProvider: React.FC = ({ children }) => {
   const [conversation, setConversation] = useState<TextConversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const [chats, setChats] = useState<Map<TextConversation, ChatMessage[]>>(new Map());
+  const [selectedChat, setSelectedChat] = useState<TextConversation | null>(null);
 
   useEffect(() => {
     if (conversation) {
@@ -45,15 +53,47 @@ export const ChatProvider: React.FC = ({ children }) => {
     if (isChatWindowOpen) setHasUnreadMessages(false);
   }, [isChatWindowOpen]);
 
+  // useEffect(() => {
+  //   if (socket) {
+  //     const conv = new TextConversation(socket, userName, );
+  //     setConversation(conv);
+  //     return () => {
+  //       conv.close();
+  //     };
+  //   }
+  // }, [socket, userName, setConversation]);
+
   useEffect(() => {
     if (socket) {
-      const conv = new TextConversation(socket, userName);
-      setConversation(conv);
+      if (chats.size === 0) {
+        chats.set(new TextConversation(socket, 'global', 'global'), []);
+        setChats(chats);
+      }
+      const handlePlayersAddedToChat = (event: PlayersAddedToChatEvent) => {
+        const chat = Array.from(chats.entries()).find(([c]) => c._chatID === event.chat._chatID);
+        if (!chat) {
+          const newChat = TextConversation.fromServerChat(socket, event.chat);
+          setChats(oldChats => new Map([...oldChats, [newChat, []]]));
+        } else {
+          chat?.[0].addPlayers(event.newPlayers);
+          setChats(oldChats => new Map(oldChats));
+        }
+      };
+      const handlePlayersRemovedFromChat = (event: PlayersRemovedFromChatEvent) => {
+        const chat = Array.from(chats.entries()).find(([c]) => c._chatID === event.chat._chatID);
+        if (chat) {
+          chat[0].removePlayers(event.removedPlayers);
+          setChats(oldChats => new Map(oldChats));
+        }
+      };
+      socket.on('playersAddedToChat', handlePlayersAddedToChat);
+      socket.on('playersRemovedFromChat', handlePlayersRemovedFromChat);
       return () => {
-        conv.close();
+        socket.off('playersAddedToChat', handlePlayersAddedToChat);
+        socket.off('playersRemovedFromChat', handlePlayersRemovedFromChat);
       };
     }
-  }, [socket, userName, setConversation]);
+  }, [socket]);
 
   return (
     <ChatContext.Provider
@@ -63,6 +103,8 @@ export const ChatProvider: React.FC = ({ children }) => {
         hasUnreadMessages,
         messages,
         conversation,
+        chats,
+        selectedChat,
       }}>
       {children}
     </ChatContext.Provider>

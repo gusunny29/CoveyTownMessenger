@@ -19,10 +19,10 @@ export default class Chat {
    *
    * @param authorID unique ID associated with the author of the chat
    */
-  public constructor(authorID: string, chatName: string) {
+  public constructor(authorID: string, chatName: string, chatID?: string) {
     this._authorID = authorID;
     this._recipientIDs.set(authorID, new Date());
-    this._chatID = nanoid();
+    this._chatID = chatID ?? nanoid();
     this._chatName = chatName;
   }
 

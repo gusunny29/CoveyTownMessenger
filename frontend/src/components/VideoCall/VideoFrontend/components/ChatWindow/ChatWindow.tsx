@@ -39,13 +39,13 @@ const useStyles = makeStyles((theme: Theme) =>
 
 export default function ChatWindow() {
   const classes = useStyles();
-  const { isChatWindowOpen, messages, conversation } = useChatContext();
+  const { isChatWindowOpen, messages, chats, selectedChat } = useChatContext();
 
   return (
     <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
       <ChatWindowHeader title={'Chat'} showAddButton={true} />
       <MessageList messages={messages} />
-      <ChatInput conversation={conversation!} isChatWindowOpen={isChatWindowOpen} />
+      <ChatInput conversation={selectedChat!} isChatWindowOpen={isChatWindowOpen} />
     </aside>
   );
 }
