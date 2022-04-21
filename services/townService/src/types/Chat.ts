@@ -83,15 +83,9 @@ export default class Chat {
   }
 
   private findNewAuthorID(): string | undefined {
-    const oldestJoinDate = Array.from(this._recipientIDs.values()).sort((a, b) => {
-      if (a < b) {
-        return -1;
-      }
-      if (a > b) {
-        return 1;
-      }
-      return 0;
-    })[0];
+    const oldestJoinDate = Array.from(this._recipientIDs.values()).sort(
+      (a, b) => a.getTime() - b.getTime(),
+    )[0];
 
     return Array.from(this._recipientIDs.entries()).find(
       entry => entry[1].getTime() === oldestJoinDate.getTime(),
