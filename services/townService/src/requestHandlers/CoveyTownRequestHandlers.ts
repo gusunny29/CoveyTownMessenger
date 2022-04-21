@@ -6,6 +6,7 @@ import {
 } from '../client/TownsServiceClient';
 import { ChatMessage, CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
+import Chat from '../types/Chat';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
 
@@ -103,15 +104,15 @@ export interface ChatCreateRequest {
   chatName: string;
 }
 
-export interface AddPlayerRequest {
+export interface AddPlayersRequest {
   coveyTownID: string;
-  playerID: string;
+  playerIDs: string[];
   chatID: string;
 }
 
-export interface RemovePlayerRequest {
+export interface RemovePlayersRequest {
   coveyTownID: string;
-  playerID: string;
+  playerIDs: string[];
   chatID: string;
 }
 
@@ -242,8 +243,8 @@ export function chatCreateHandler(
   };
 }
 
-export function addPlayerHandler(
-  requestData: AddPlayerRequest,
+export function addPlayesrHandler(
+  requestData: AddPlayersRequest,
 ): ResponseEnvelope<Record<string, null>> {
   const townsStore = CoveyTownsStore.getInstance();
 
@@ -255,7 +256,7 @@ export function addPlayerHandler(
     };
   }
 
-  coveyTownController.addPlayerToChat(requestData.playerID, requestData.chatID);
+  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
 
   return {
     isOK: true,
@@ -265,7 +266,7 @@ export function addPlayerHandler(
 }
 
 export function removePlayerHandler(
-  requestData: AddPlayerRequest,
+  requestData: RemovePlayersRequest,
 ): ResponseEnvelope<Record<string, null>> {
   const townsStore = CoveyTownsStore.getInstance();
 
@@ -277,8 +278,8 @@ export function removePlayerHandler(
     };
   }
 
-  const success = coveyTownController.removePlayerFromChat(
-    requestData.playerID,
+  const success = coveyTownController.removePlayersFromChat(
+    requestData.playerIDs,
     requestData.chatID,
   );
 
@@ -326,7 +327,7 @@ export function conversationAreaCreateHandler(
  *
  * @param socket the Socket object that we will use to communicate with the player
  */
-function townSocketAdapter(socket: Socket): CoveyTownListener {
+function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener {
   return {
     onPlayerMoved(movedPlayer: Player) {
       socket.emit('playerMoved', movedPlayer);
@@ -350,6 +351,13 @@ function townSocketAdapter(socket: Socket): CoveyTownListener {
     onChatMessage(message: ChatMessage) {
       socket.emit('chatMessage', message);
     },
+    onPlayersAddedToChat(chat: Chat, newPlayers: string[]) {
+      socket.emit('playersAddedToChat', { chat, newPlayers });
+    },
+    onPlayersRemovedFromChat(chat: Chat, removedPlayers: string[]) {
+      socket.emit('playersRemovedFromChat', { chat, removedPlayers });
+    },
+    playerId,
   };
 }
 
@@ -381,7 +389,7 @@ export function townSubscriptionHandler(socket: Socket): void {
 
   // Create an adapter that will translate events from the CoveyTownController into
   // events that the socket protocol knows about
-  const listener = townSocketAdapter(socket);
+  const listener = townSocketAdapter(socket, s.player.id);
   townController.addTownListener(listener);
 
   // Register an event listener for the client socket: if the client disconnects,
