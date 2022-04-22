@@ -17,13 +17,16 @@ export default class TextConversation {
 
   _chatID: string;
 
+  _chatName: string;
+
   /**
    * Create a new Text Conversation
    *
    * @param socket socket to use to send/receive messages
    * @param authorName name of message author to use as sender
    */
-  public constructor(socket: Socket, authorID: string, chatID: string) {
+  public constructor(socket: Socket, authorID: string, chatID: string, chatName: string) {
+    this._chatName = chatName;
     this._chatID = chatID;
     this._occupants = [];
     this._socket = socket;
@@ -78,7 +81,7 @@ export default class TextConversation {
   }
 
   public static fromServerChat(socket: Socket, chat: ServerChat): TextConversation {
-    return new TextConversation(socket, chat._authorID, chat._chatID);
+    return new TextConversation(socket, chat._authorID, chat._chatID, chat._chatName);
   }
 
   public addPlayers(players: string[]) {

@@ -2,6 +2,7 @@ import { CloseButton, Flex, Heading, HStack, IconButton, useDisclosure } from '@
 import React from 'react';
 import useChatContext from '../../../hooks/useChatContext/useChatContext';
 import AddIcon from '../../../icons/AddIcon';
+import BackIcon from '../../../icons/BackIcon';
 import { CreateChatModal } from '../ChatModals/CreateChatModal';
 
 export default function ChatWindowHeader({
@@ -11,7 +12,7 @@ export default function ChatWindowHeader({
   title: string;
   showAddButton: boolean;
 }) {
-  const { setIsChatWindowOpen } = useChatContext();
+  const { setIsChatWindowOpen, setSelectedChat, selectedChat } = useChatContext();
   const {
     isOpen: isCreateChatModalOpen,
     onClose: onCloseCreateChatModal,
@@ -26,6 +27,14 @@ export default function ChatWindowHeader({
       borderBottom='1px solid #E4E7E9'
       align='center'
       paddingX='1em'>
+      {selectedChat && (
+          <IconButton
+            icon={<BackIcon />}
+            size='sm'
+            aria-label='back-to-chat-list'
+            onClick={() => setSelectedChat(null)}
+          />
+        )}
       <Heading size='sm'>{title}</Heading>
       <HStack>
         {showAddButton && (

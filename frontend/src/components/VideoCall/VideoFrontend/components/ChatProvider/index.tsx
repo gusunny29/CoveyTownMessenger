@@ -14,6 +14,7 @@ type ChatContextType = {
   conversation: TextConversation | null;
   chats: Map<TextConversation, ChatMessage[]>;
   selectedChat: TextConversation | null;
+  setSelectedChat: (newChat: TextConversation | null) => void;
 };
 
 export const ChatContext = createContext<ChatContextType>(null!);
@@ -66,7 +67,7 @@ export const ChatProvider: React.FC = ({ children }) => {
   useEffect(() => {
     if (socket) {
       if (chats.size === 0) {
-        chats.set(new TextConversation(socket, 'global', 'global'), []);
+        chats.set(new TextConversation(socket, 'global', 'global', 'global chat'), []);
         setChats(chats);
       }
       const handlePlayersAddedToChat = (event: PlayersAddedToChatEvent) => {
@@ -105,6 +106,7 @@ export const ChatProvider: React.FC = ({ children }) => {
         conversation,
         chats,
         selectedChat,
+        setSelectedChat
       }}>
       {children}
     </ChatContext.Provider>

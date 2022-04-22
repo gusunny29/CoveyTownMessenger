@@ -1,6 +1,8 @@
+import { Box, Tab, TabPanel, Tabs } from '@chakra-ui/react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import clsx from 'clsx';
 import useChatContext from '../../hooks/useChatContext/useChatContext';
+import { ChatList } from '../ChatList/ChatList';
 import ChatInput from './ChatInput/ChatInput';
 import ChatWindowHeader from './ChatWindowHeader/ChatWindowHeader';
 import MessageList from './MessageList/MessageList';
@@ -44,8 +46,15 @@ export default function ChatWindow() {
   return (
     <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
       <ChatWindowHeader title={'Chat'} showAddButton={true} />
-      <MessageList messages={messages} />
-      <ChatInput conversation={selectedChat!} isChatWindowOpen={isChatWindowOpen} />
+      {selectedChat && (
+      <>
+        <MessageList messages={messages} />
+        <ChatInput conversation={selectedChat!} isChatWindowOpen={isChatWindowOpen} />
+      </>
+      )}
+      {!selectedChat && (
+        <ChatList/>
+      )}
     </aside>
   );
 }
