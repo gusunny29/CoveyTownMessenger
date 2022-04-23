@@ -1,5 +1,4 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { Socket } from 'socket.io';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import Chat from '../types/Chat';
@@ -82,9 +81,6 @@ export default class CoveyTownController {
   private _isPubliclyListed: boolean;
 
   private _capacity: number;
-
-  /** Mapping each unique player id to its corresponding socket * */
-  private _socketSessionMap: Map<string, Socket> = new Map();
 
   /** The list of active chats associated with this town */
   private _chats: Chat[];
@@ -293,9 +289,9 @@ export default class CoveyTownController {
   onChatMessage(message: ChatMessage): void {
     const chat = this._chats.find(ch => ch.getChatID() === message.chatID);
     if (chat) {
-      this._socketSessionMap.forEach((socket, playerId) => {
-        if (chat.getPlayers().includes(playerId)) {
-          socket.emit('chatMessage', message);
+      this._listeners.forEach(listener => {
+        if (chat.getPlayers().includes(listener.playerId)) {
+          listener.onChatMessage(message);
         }
       });
       // TODO remove this._listeners.forEach(listener => listener.onChatMessage(message));
@@ -314,16 +310,6 @@ export default class CoveyTownController {
 
   disconnectAllPlayers(): void {
     this._listeners.forEach(listener => listener.onTownDestroyed());
-  }
-
-  /**
-   * Adds a mapping between a player and its corresponding socket to _socketSessionMap
-   *
-   * @param socket represents the socket associated with this player
-   * @param newPlayer represents the player associated with this socket
-   */
-  addPlayerSocketMapping(socket: Socket, newPlayer: Player): void {
-    this._socketSessionMap.set(newPlayer.id, socket);
   }
 
   /**
@@ -401,11 +387,9 @@ export default class CoveyTownController {
   createChat(authorID: string, chatName: string): boolean {
     const chat = new Chat(authorID, chatName);
     this._chats.push(chat);
-    const author = Array.from(this._socketSessionMap.entries()).find(
-      ([playerId]) => playerId === authorID,
-    );
+    const author = this._listeners.find(listener => listener.playerId === authorID);
     if (author) {
-      author[1].emit('onAddedToChat', chat);
+      author.onPlayersAddedToChat(chat, [authorID]);
     }
     return !!chat;
   }
