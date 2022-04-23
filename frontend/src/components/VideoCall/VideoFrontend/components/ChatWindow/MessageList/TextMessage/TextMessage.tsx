@@ -1,8 +1,8 @@
-import React from 'react';
-import clsx from 'clsx';
 import { Link } from '@material-ui/core';
-import linkify from 'linkify-it';
 import { makeStyles } from '@material-ui/core/styles';
+import clsx from 'clsx';
+import linkify from 'linkify-it';
+import React from 'react';
 
 const useStyles = makeStyles({
   messageContainer: {
@@ -36,9 +36,9 @@ function addLinks(text: string) {
   matches.forEach((match, i) => {
     results.push(text.slice(lastIndex, match.index));
     results.push(
-      <Link target="_blank" rel="noreferrer" href={match.url} key={i}>
+      <Link target='_blank' rel='noreferrer' href={match.url} key={i}>
         {match.text}
-      </Link>
+      </Link>,
     );
     lastIndex = match.lastIndex;
   });
@@ -56,8 +56,7 @@ export default function TextMessage({ body, isLocalParticipant }: TextMessagePro
       <div
         className={clsx(classes.messageContainer, {
           [classes.isLocalParticipant]: isLocalParticipant,
-        })}
-      >
+        })}>
         <div>{addLinks(body)}</div>
       </div>
     </div>
