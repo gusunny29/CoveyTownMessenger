@@ -216,9 +216,7 @@ export function townUpdateHandler(
   };
 }
 
-export function chatCreateHandler(
-  requestData: ChatCreateRequest,
-): ResponseEnvelope<Record<string, null>> {
+export function chatCreateHandler(requestData: ChatCreateRequest): ResponseEnvelope<Chat> {
   const townsStore = CoveyTownsStore.getInstance();
 
   const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
@@ -240,8 +238,8 @@ export function chatCreateHandler(
   const chatCreated = coveyTownController.createChat(session.player.id, requestData.chatName);
 
   return {
-    isOK: chatCreated,
-    response: {},
+    isOK: !!chatCreated,
+    response: chatCreated,
   };
 }
 

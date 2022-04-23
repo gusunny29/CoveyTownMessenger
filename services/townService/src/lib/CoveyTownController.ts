@@ -384,13 +384,13 @@ export default class CoveyTownController {
    * @param chatName represents the name of the chat
    * @returns whether or not the chat was created successfully
    */
-  createChat(authorID: string, chatName: string): boolean {
+  createChat(authorID: string, chatName: string): Chat {
     const chat = new Chat(authorID, chatName);
     this._chats.push(chat);
     const author = this._listeners.find(listener => listener.playerId === authorID);
     if (author) {
       author.onPlayersAddedToChat(chat, [authorID]);
     }
-    return !!chat;
+    return chat;
   }
 }
