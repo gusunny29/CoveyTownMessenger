@@ -1,4 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
+import { Socket } from 'socket.io';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import Chat from '../types/Chat';
@@ -425,6 +426,9 @@ export default class CoveyTownController {
     const unblockedPlayer = this.players.find(p => p.id === unblockedPlayerID);
     if (unblockingPlayer && unblockedPlayer) {
       unblockingPlayer.removeBlockedPlayerID(unblockedPlayerID);
+      this._listeners.forEach(listener => {
+        listener.onPlayerUnblocked(unblockingPlayerID, unblockedPlayerID);
+      });
       return true;
     }
     return false;

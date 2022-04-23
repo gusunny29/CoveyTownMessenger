@@ -375,7 +375,7 @@ export function unblockPlayerHandler(
   return {
     isOK: success,
     response: {},
-    message: !success ? 'Unable to block player successfully' : undefined,
+    message: !success ? 'Unable to unblock player successfully' : undefined,
   };
 }
 
@@ -450,6 +450,9 @@ function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener 
     onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string) {
       socket.emit('playerBlocked', { blockingPlayerId, blockedPlayerID });
     },
+    onPlayerUnblocked(unblockingPlayerID: string, unblockedPlayerID: string) {
+      socket.emit('playerUnblocked', { unblockingPlayerID, unblockedPlayerID });
+    },
   };
 }
 
@@ -497,7 +500,13 @@ export function townSubscriptionHandler(socket: Socket): void {
     townController.updatePlayerLocation(s.player, movementData);
   });
 
+<<<<<<< HEAD
   // Register an event listener for the client socket: if the client blocks
   // another player, add it to their list of blocked players
   socket.on('playerBlocked', blockPlayerHandler);
+=======
+  // Register an event listener for the client socket: if the client unblocks
+  // another player, remove it to their list of blocked players
+  socket.on('playerunBlocked', unblockPlayerHandler);
+>>>>>>> efa4443 (unblock Player Listeners and Request Handlers)
 }
