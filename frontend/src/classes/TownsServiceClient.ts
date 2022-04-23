@@ -2,6 +2,7 @@ import assert from 'assert';
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { ServerConversationArea } from './ConversationArea';
 import { ServerPlayer } from './Player';
+import { ServerChat } from './TextConversation';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -91,6 +92,20 @@ export interface ChatCreateRequest {
   chatName: string;
 }
 
+export interface RemovePlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  playerIDs: string[];
+  chatID: string;
+}
+
+export interface AddPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  playerIDs: string[];
+  chatID: string;
+}
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -176,9 +191,25 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async createChat(requestData: ChatCreateRequest): Promise<boolean> {
+  async createChat(requestData: ChatCreateRequest): Promise<ServerChat> {
     const responseWrapper = await this._axios.post(
       `/towns/${requestData.coveyTownID}/chats`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async removePlayersFromChat(requestData: RemovePlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.put(
+      `/towns/${requestData.coveyTownID}/chats/remove`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async addPlayersToChat(requestData: AddPlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.put(
+      `/towns/${requestData.coveyTownID}/chats/add`,
       requestData,
     );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);

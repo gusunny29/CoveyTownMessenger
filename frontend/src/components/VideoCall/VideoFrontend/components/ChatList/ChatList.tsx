@@ -7,9 +7,9 @@ export const ChatList = () => {
     <VStack minW='250px'>
     {Array.from(chats.keys()).map(chat => {
         return(
-          <Box h='50px' bg='gray.200' width='100%' onClick={() => setSelectedChat(chat)} cursor='pointer'>
+          <Box h='50px' bg='gray.200' width='100%' onClick={() => setSelectedChat(chat)} cursor='pointer' key={chat._chatID}>
             {chat._chatName}
-          </Box>  
+          </Box>
         );
       })}
     </VStack>

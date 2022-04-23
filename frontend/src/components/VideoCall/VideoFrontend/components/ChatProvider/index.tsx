@@ -63,24 +63,27 @@ export const ChatProvider: React.FC = ({ children }) => {
   useEffect(() => {
     if (socket) {
       if (chats.size === 0) {
-        chats.set(new TextConversation(socket, myPlayerID, 'global', 'Global Chat'), []);
+        chats.set(new TextConversation(socket, myPlayerID, 'global', 'Global Chat', 'global'), []);
         setChats(chats);
       }
       const handlePlayersAddedToChat = (event: PlayersAddedToChatEvent) => {
         const chat = Array.from(chats.entries()).find(([c]) => c._chatID === event.chat._chatID);
         if (!chat) {
-          const newChat = TextConversation.fromServerChat(socket, event.chat);
+          const newChat = TextConversation.fromServerChat(socket, event.chat, myPlayerID);
           setChats(oldChats => new Map([...oldChats, [newChat, []]]));
         } else {
           chat?.[0].addPlayers(event.newPlayers);
-          setChats(oldChats => new Map(oldChats));
+          setChats(new Map(chats));
         }
       };
       const handlePlayersRemovedFromChat = (event: PlayersRemovedFromChatEvent) => {
         const chat = Array.from(chats.entries()).find(([c]) => c._chatID === event.chat._chatID);
         if (chat) {
           chat[0].removePlayers(event.removedPlayers);
-          setChats(oldChats => new Map(oldChats));
+          if (chat[0]._ownerID !== myPlayerID && !chat[0]._occupants.includes(myPlayerID)) {
+            chats.delete(chat[0]);
+          }
+          setChats(new Map(chats));
         }
       };
       const onMessage = (message: ChatMessage) => {
@@ -100,7 +103,7 @@ export const ChatProvider: React.FC = ({ children }) => {
         socket.off('playersRemovedFromChat', handlePlayersRemovedFromChat);
       };
     }
-  }, [socket]);
+  }, [socket, chats, setChats]);
 
   return (
     <ChatContext.Provider

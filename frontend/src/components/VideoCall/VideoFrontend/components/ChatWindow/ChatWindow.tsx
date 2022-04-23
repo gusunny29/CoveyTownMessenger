@@ -44,7 +44,7 @@ export default function ChatWindow() {
 
   return (
     <aside className={clsx(classes.chatWindowContainer, { [classes.hide]: !isChatWindowOpen })}>
-      <ChatWindowHeader title={'Chat'} showAddButton={true} />
+      <ChatWindowHeader showAddButton={true} />
       {selectedChat && (
         <>
           <MessageList
