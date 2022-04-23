@@ -3,8 +3,10 @@ import { Server } from 'http';
 import { StatusCodes } from 'http-status-codes';
 import io from 'socket.io';
 import {
+  addPlayersHandler,
   chatCreateHandler,
   conversationAreaCreateHandler,
+  removePlayerHandler,
   townCreateHandler,
   townDeleteHandler,
   townJoinHandler,
@@ -122,6 +124,40 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         coveyTownID: req.params.townID,
         sessionToken: req.body.sessionToken,
         chatName: req.body.chatName,
+      });
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal server error, please see log in server for more details',
+      });
+    }
+  });
+
+  app.put('/towns/:townID/chats/add', express.json(), async (req, res) => {
+    try {
+      const result = addPlayersHandler({
+        coveyTownID: req.params.townID,
+        sessionToken: req.body.sessionToken,
+        playerIDs: req.body.playerIDs,
+        chatID: req.body.chatID,
+      });
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal server error, please see log in server for more details',
+      });
+    }
+  });
+
+  app.put('/towns/:townID/chats/remove', express.json(), async (req, res) => {
+    try {
+      const result = removePlayerHandler({
+        coveyTownID: req.params.townID,
+        sessionToken: req.body.sessionToken,
+        playerIDs: req.body.playerIDs,
+        chatID: req.body.chatID,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {

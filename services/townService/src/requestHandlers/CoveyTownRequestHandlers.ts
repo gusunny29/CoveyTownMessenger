@@ -107,12 +107,14 @@ export interface ChatCreateRequest {
 export interface AddPlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
+  sessionToken: string;
   chatID: string;
 }
 
 export interface RemovePlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
+  sessionToken: string;
   chatID: string;
 }
 
@@ -243,7 +245,7 @@ export function chatCreateHandler(
   };
 }
 
-export function addPlayesrHandler(
+export function addPlayersHandler(
   requestData: AddPlayersRequest,
 ): ResponseEnvelope<Record<string, null>> {
   const townsStore = CoveyTownsStore.getInstance();
@@ -257,6 +259,14 @@ export function addPlayesrHandler(
   }
 
   coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
+
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
 
   return {
     isOK: true,
@@ -275,6 +285,14 @@ export function removePlayerHandler(
     return {
       isOK: false,
       message: 'Error: No such town',
+    };
+  }
+
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
     };
   }
 
