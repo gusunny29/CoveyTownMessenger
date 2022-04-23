@@ -25,12 +25,12 @@ export default class TextConversation {
    * @param socket socket to use to send/receive messages
    * @param authorName name of message author to use as sender
    */
-  public constructor(socket: Socket, authorID: string, chatID: string, chatName: string) {
+  public constructor(socket: Socket, authorName: string, chatID: string, chatName: string) {
     this._chatName = chatName;
     this._chatID = chatID;
     this._occupants = [];
     this._socket = socket;
-    this._authorName = authorID;
+    this._authorName = authorName;
     this._socket.on('chatMessage', (message: ChatMessage) => {
       message.dateCreated = new Date(message.dateCreated);
       this.onChatMessage(message);
