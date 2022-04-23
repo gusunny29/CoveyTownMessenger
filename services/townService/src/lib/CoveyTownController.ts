@@ -413,4 +413,20 @@ export default class CoveyTownController {
     }
     return false;
   }
+
+  /**
+   * Removes a player from being blocked, so that messages and conversations can now be made with the unblocked player
+   * @param unblockingPlayerID unique ID of the player unblocking the blocked player
+   * @param unblockedPlayerID unique ID of the player being unblocked
+   * @returns whether the player was successfully unblocked
+   */
+  unblockPlayer(unblockingPlayerID: string, unblockedPlayerID: string): boolean {
+    const unblockingPlayer = this.players.find(p => p.id === unblockingPlayerID);
+    const unblockedPlayer = this.players.find(p => p.id === unblockedPlayerID);
+    if (unblockingPlayer && unblockedPlayer) {
+      unblockingPlayer.removeBlockedPlayerID(unblockedPlayerID);
+      return true;
+    }
+    return false;
+  }
 }

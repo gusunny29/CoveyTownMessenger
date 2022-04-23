@@ -134,6 +134,14 @@ export interface BlockPlayerRequest {
 }
 
 /**
+ * Payload sent by client to block a player in Covey.Town
+ */
+export interface UnblockPlayerRequest {
+  coveyTownID: string;
+  unblockingPlayerID: string;
+  unblockedPlayerID: string;
+}
+/**
  * A handler to process a player's request to join a town. The flow is:
  *  1. Client makes a TownJoinRequest, this handler is executed
  *  2. Client uses the sessionToken returned by this handler to make a subscription to the town,
@@ -337,6 +345,31 @@ export function blockPlayerHandler(
   const success = coveyTownController.blockPlayer(
     requestData.blockingPlayerID,
     requestData.blockedPlayerID,
+  );
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Unable to block player successfully' : undefined,
+  };
+}
+
+export function unblockPlayerHandler(
+  requestData: UnblockPlayerRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+
+  const success = coveyTownController.unblockPlayer(
+    requestData.unblockingPlayerID,
+    requestData.unblockedPlayerID,
   );
 
   return {

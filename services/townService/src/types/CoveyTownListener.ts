@@ -70,4 +70,10 @@ export default interface CoveyTownListener {
    * @param blockedPlayerId the ID of the player who is being blocked
    */
   onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string): void;
+
+  /**
+   * Called when a player is unblocked
+   */
+
+  // onPlayerUnblocked(chat: Chat, unblockedPlayers: string[]): void;
 }
