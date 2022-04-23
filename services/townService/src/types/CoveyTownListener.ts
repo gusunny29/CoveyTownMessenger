@@ -63,4 +63,11 @@ export default interface CoveyTownListener {
   onPlayersRemovedFromChat(chat: Chat, removedPlayers: string[]): void;
 
   playerId: string;
+
+  /**
+   * Called when a player blocks another player
+   * @param blockingPlayerId the ID of the player who is doing the blocking
+   * @param blockedPlayerId the ID of the player who is being blocked
+   */
+  onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string): void;
 }
