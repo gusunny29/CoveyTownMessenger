@@ -19,7 +19,7 @@ export default class Player {
   private _activeConversationArea?: ServerConversationArea;
 
   /** The current list of blocked player IDs for this player */
-  private _blockedPlayerIDs: string[]; 
+  private _blockedPlayerIDs: string[];
 
   constructor(userName: string) {
     this.location = {
@@ -57,15 +57,23 @@ export default class Player {
     this._blockedPlayerIDs.push(playerIDToBlock);
   }
 
+  removeBlockedPlayerID(playerIDToUnblock: string): void {
+    this._blockedPlayerIDs.forEach((element, index) => {
+      if (element === playerIDToUnblock) {
+        this._blockedPlayerIDs.splice(index, 1);
+      }
+    });
+  }
+
   /**
    * Checks to see if a player's location is within the specified conversation area
-   * 
+   *
    * This method is resilient to floating point errors that could arise if any of the coordinates of
    * `this.location` are dramatically smaller than those of the conversation area's bounding box.
-   * @param conversation 
-   * @returns 
+   * @param conversation
+   * @returns
    */
-  isWithin(conversation: ServerConversationArea) : boolean {
+  isWithin(conversation: ServerConversationArea): boolean {
     return (
       this.location.x > conversation.boundingBox.x - conversation.boundingBox.width / 2 &&
       this.location.x < conversation.boundingBox.x + conversation.boundingBox.width / 2 &&
@@ -73,5 +81,4 @@ export default class Player {
       this.location.y < conversation.boundingBox.y + conversation.boundingBox.height / 2
     );
   }
-
 }

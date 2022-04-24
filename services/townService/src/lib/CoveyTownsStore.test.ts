@@ -43,6 +43,9 @@ function mockCoveyListener(): CoveyTownListener {
     onPlayerBlocked(blockingPlayerId: string, blockedPlayer: string) {
       mockCoveyListenerOtherFns(blockingPlayerId, blockedPlayer);
     },
+    onPlayerUnblocked(unblockingPlayerId: string, unblockedPlayer: string) {
+      mockCoveyListenerOtherFns(unblockingPlayerId, unblockedPlayer);
+    },
   };
 }
 

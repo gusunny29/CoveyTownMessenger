@@ -134,6 +134,14 @@ export interface BlockPlayerRequest {
 }
 
 /**
+ * Payload sent by client to block a player in Covey.Town
+ */
+export interface UnblockPlayerRequest {
+  coveyTownID: string;
+  unblockingPlayerID: string;
+  unblockedPlayerID: string;
+}
+/**
  * A handler to process a player's request to join a town. The flow is:
  *  1. Client makes a TownJoinRequest, this handler is executed
  *  2. Client uses the sessionToken returned by this handler to make a subscription to the town,
@@ -346,6 +354,31 @@ export function blockPlayerHandler(
   };
 }
 
+export function unblockPlayerHandler(
+  requestData: UnblockPlayerRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+
+  const success = coveyTownController.unblockPlayer(
+    requestData.unblockingPlayerID,
+    requestData.unblockedPlayerID,
+  );
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Unable to unblock player successfully' : undefined,
+  };
+}
+
 /**
  * A handler to process the "Create Conversation Area" request
  * The intended flow of this handler is:
@@ -417,6 +450,9 @@ function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener 
     onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string) {
       socket.emit('playerBlocked', { blockingPlayerId, blockedPlayerID });
     },
+    onPlayerUnblocked(unblockingPlayerID: string, unblockedPlayerID: string) {
+      socket.emit('playerUnblocked', { unblockingPlayerID, unblockedPlayerID });
+    },
   };
 }
 
@@ -463,8 +499,4 @@ export function townSubscriptionHandler(socket: Socket): void {
   socket.on('playerMovement', (movementData: UserLocation) => {
     townController.updatePlayerLocation(s.player, movementData);
   });
-
-  // Register an event listener for the client socket: if the client blocks
-  // another player, add it to their list of blocked players
-  socket.on('playerBlocked', blockPlayerHandler);
 }

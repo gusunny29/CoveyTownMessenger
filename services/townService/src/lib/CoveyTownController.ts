@@ -1,4 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
+import { Socket } from 'socket.io';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
 import Chat from '../types/Chat';
@@ -408,6 +409,25 @@ export default class CoveyTownController {
       blockingPlayer.addBlockedPlayerID(blockedPlayerID);
       this._listeners.forEach(listener => {
         listener.onPlayerBlocked(blockingPlayerID, blockedPlayerID);
+      });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Removes a player from being blocked, so that messages and conversations can now be made with the unblocked player
+   * @param unblockingPlayerID unique ID of the player unblocking the blocked player
+   * @param unblockedPlayerID unique ID of the player being unblocked
+   * @returns whether the player was successfully unblocked
+   */
+  unblockPlayer(unblockingPlayerID: string, unblockedPlayerID: string): boolean {
+    const unblockingPlayer = this.players.find(p => p.id === unblockingPlayerID);
+    const unblockedPlayer = this.players.find(p => p.id === unblockedPlayerID);
+    if (unblockingPlayer && unblockedPlayer) {
+      unblockingPlayer.removeBlockedPlayerID(unblockedPlayerID);
+      this._listeners.forEach(listener => {
+        listener.onPlayerUnblocked(unblockingPlayerID, unblockedPlayerID);
       });
       return true;
     }

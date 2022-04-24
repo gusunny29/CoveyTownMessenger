@@ -14,6 +14,7 @@ import {
   townListHandler,
   townSubscriptionHandler,
   townUpdateHandler,
+  unblockPlayerHandler,
 } from '../requestHandlers/CoveyTownRequestHandlers';
 import { logError } from '../Utils';
 
@@ -159,6 +160,22 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         sessionToken: req.body.sessionToken,
         playerIDs: req.body.playerIDs,
         chatID: req.body.chatID,
+      });
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal server error, please see log in server for more details',
+      });
+    }
+  });
+
+  app.post('/towns/:townID/players/unblock', express.json(), async (req, res) => {
+    try {
+      const result = await unblockPlayerHandler({
+        coveyTownID: req.params.townID,
+        unblockingPlayerID: req.body.unblockPlayerID,
+        unblockedPlayerID: req.body.unblockedPlayerID,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
