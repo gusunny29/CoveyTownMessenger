@@ -395,12 +395,12 @@ export default class CoveyTownController {
   }
 
   /**
- * Adds a player's id to the list of blocked player id's for a player
- *
- * @param blockingPlayerID represents the unique ID of blocking player
- * @param blockedPlayerID represents the unique ID of the player to block 
- * @returns whether the player was successfully blocked
- */
+   * Adds a player's id to the list of blocked player id's for a player
+   *
+   * @param blockingPlayerID represents the unique ID of blocking player
+   * @param blockedPlayerID represents the unique ID of the player to block
+   * @returns whether the player was successfully blocked
+   */
   blockPlayer(blockingPlayerID: string, blockedPlayerID: string): boolean {
     const blockingPlayer = this.players.find(p => p.id === blockingPlayerID);
     const blockedPlayer = this.players.find(p => p.id === blockedPlayerID);
