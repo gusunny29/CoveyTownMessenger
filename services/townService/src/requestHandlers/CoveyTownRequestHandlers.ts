@@ -499,14 +499,4 @@ export function townSubscriptionHandler(socket: Socket): void {
   socket.on('playerMovement', (movementData: UserLocation) => {
     townController.updatePlayerLocation(s.player, movementData);
   });
-
-<<<<<<< HEAD
-  // Register an event listener for the client socket: if the client blocks
-  // another player, add it to their list of blocked players
-  socket.on('playerBlocked', blockPlayerHandler);
-=======
-  // Register an event listener for the client socket: if the client unblocks
-  // another player, remove it to their list of blocked players
-  socket.on('playerunBlocked', unblockPlayerHandler);
->>>>>>> efa4443 (unblock Player Listeners and Request Handlers)
 }
