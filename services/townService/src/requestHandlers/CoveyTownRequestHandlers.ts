@@ -6,6 +6,7 @@ import {
 } from '../client/TownsServiceClient';
 import { ChatMessage, CoveyTownList, UserLocation } from '../CoveyTypes';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
+import Chat from '../types/Chat';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
 
@@ -99,25 +100,28 @@ export interface ResponseEnvelope<T> {
  */
 export interface ChatCreateRequest {
   coveyTownID: string;
-  authorID: string;
+  sessionToken: string;
   chatName: string;
 }
 
+
 /**
- * Payload sent by client to add a player to an existing chat in Covey.Town
+ * Payload sent by client to add players to an existing chat in Covey.Town
  */
-export interface AddPlayerRequest {
+export interface AddPlayersRequest {
   coveyTownID: string;
-  playerID: string;
+  playerIDs: string[];
+  sessionToken: string;
   chatID: string;
 }
 
 /**
- * Payload sent by client to remove a player to an existing chat in Covey.Town
+ * Payload sent by client to remove players to an existing chat in Covey.Town
  */
-export interface RemovePlayerRequest {
+export interface RemovePlayersRequest {
   coveyTownID: string;
-  playerID: string;
+  playerIDs: string[];
+  sessionToken: string;
   chatID: string;
 }
 
@@ -228,9 +232,7 @@ export function townUpdateHandler(
   };
 }
 
-export function chatCreateHandler(
-  requestData: ChatCreateRequest,
-): ResponseEnvelope<Record<string, null>> {
+export function chatCreateHandler(requestData: ChatCreateRequest): ResponseEnvelope<Chat> {
   const townsStore = CoveyTownsStore.getInstance();
 
   const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
@@ -241,17 +243,24 @@ export function chatCreateHandler(
     };
   }
 
-  coveyTownController.createChat(requestData.authorID, requestData.chatName);
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  const chatCreated = coveyTownController.createChat(session.player.id, requestData.chatName);
 
   return {
-    isOK: true,
-    response: {},
-    message: undefined,
+    isOK: !!chatCreated,
+    response: chatCreated,
   };
 }
 
-export function addPlayerHandler(
-  requestData: AddPlayerRequest,
+export function addPlayersHandler(
+  requestData: AddPlayersRequest,
 ): ResponseEnvelope<Record<string, null>> {
   const townsStore = CoveyTownsStore.getInstance();
 
@@ -263,7 +272,15 @@ export function addPlayerHandler(
     };
   }
 
-  coveyTownController.addPlayerToChat(requestData.playerID, requestData.chatID);
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
 
   return {
     isOK: true,
@@ -273,7 +290,7 @@ export function addPlayerHandler(
 }
 
 export function removePlayerHandler(
-  requestData: AddPlayerRequest,
+  requestData: RemovePlayersRequest,
 ): ResponseEnvelope<Record<string, null>> {
   const townsStore = CoveyTownsStore.getInstance();
 
@@ -285,8 +302,16 @@ export function removePlayerHandler(
     };
   }
 
-  const success = coveyTownController.removePlayerFromChat(
-    requestData.playerID,
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  const success = coveyTownController.removePlayersFromChat(
+    requestData.playerIDs,
     requestData.chatID,
   );
 
@@ -359,7 +384,7 @@ export function conversationAreaCreateHandler(
  *
  * @param socket the Socket object that we will use to communicate with the player
  */
-function townSocketAdapter(socket: Socket): CoveyTownListener {
+function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener {
   return {
     onPlayerMoved(movedPlayer: Player) {
       socket.emit('playerMoved', movedPlayer);
@@ -383,6 +408,13 @@ function townSocketAdapter(socket: Socket): CoveyTownListener {
     onChatMessage(message: ChatMessage) {
       socket.emit('chatMessage', message);
     },
+    onPlayersAddedToChat(chat: Chat, newPlayers: string[]) {
+      socket.emit('playersAddedToChat', { chat, newPlayers });
+    },
+    onPlayersRemovedFromChat(chat: Chat, removedPlayers: string[]) {
+      socket.emit('playersRemovedFromChat', { chat, removedPlayers });
+    },
+    playerId,
   };
 }
 
@@ -401,11 +433,6 @@ export function townSubscriptionHandler(socket: Socket): void {
   // Retrieve our metadata about this player from the TownController
   const s = townController?.getSessionByToken(token);
 
-  // if we have a valid session, then add the socket-player mapping inside controller
-  if (s) {
-    townController?.addPlayerSocketMapping(socket, s.player);
-  }
-
   if (!s || !townController) {
     // No valid session exists for this token, hence this client's connection should be terminated
     socket.disconnect(true);
@@ -414,7 +441,7 @@ export function townSubscriptionHandler(socket: Socket): void {
 
   // Create an adapter that will translate events from the CoveyTownController into
   // events that the socket protocol knows about
-  const listener = townSocketAdapter(socket);
+  const listener = townSocketAdapter(socket, s.player.id);
   townController.addTownListener(listener);
 
   // Register an event listener for the client socket: if the client disconnects,

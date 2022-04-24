@@ -1,4 +1,3 @@
-import { Socket } from 'dgram';
 import { customAlphabet, nanoid } from 'nanoid';
 import { BoundingBox, ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage, UserLocation } from '../CoveyTypes';
@@ -10,6 +9,8 @@ import IVideoClient from './IVideoClient';
 import TwilioVideo from './TwilioVideo';
 
 const friendlyNanoID = customAlphabet('1234567890ABCDEF', 8);
+const GLOBAL_CHAT_ID = 'global';
+const GLOBAL_CHAT_NAME = 'Global Chat';
 
 /**
  * The CoveyTownController implements the logic for each town: managing the various events that
@@ -81,9 +82,6 @@ export default class CoveyTownController {
 
   private _capacity: number;
 
-  /** Mapping each unique player id to its corresponding socket * */
-  private _socketSessionMap: Map<string, Socket> = new Map();
-
   /** The list of active chats associated with this town */
   private _chats: Chat[];
 
@@ -93,7 +91,7 @@ export default class CoveyTownController {
     this._townUpdatePassword = nanoid(24);
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
-    this._chats = [];
+    this._chats = [new Chat(GLOBAL_CHAT_ID, GLOBAL_CHAT_NAME, GLOBAL_CHAT_ID)];
   }
 
   /**
@@ -117,6 +115,9 @@ export default class CoveyTownController {
     // Notify other players that this player has joined
     this._listeners.forEach(listener => listener.onPlayerJoined(newPlayer));
 
+    // Add Player to global chat
+    this.addPlayersToChat([newPlayer.id], GLOBAL_CHAT_ID);
+
     return theSession;
   }
 
@@ -133,6 +134,9 @@ export default class CoveyTownController {
     if (conversation) {
       this.removePlayerFromConversationArea(session.player, conversation);
     }
+    this._chats.forEach(chat => {
+      this.removePlayersFromChat([session.player.id], chat.getChatID());
+    });
   }
 
   /**
@@ -278,8 +282,20 @@ export default class CoveyTownController {
     this._listeners = this._listeners.filter(v => v !== listener);
   }
 
+  /**
+   * Route chat message to the appropriate recipients
+   * @param message
+   */
   onChatMessage(message: ChatMessage): void {
-    this._listeners.forEach(listener => listener.onChatMessage(message));
+    const chat = this._chats.find(ch => ch.getChatID() === message.chatID);
+    if (chat) {
+      this._listeners.forEach(listener => {
+        if (chat.getPlayers().includes(listener.playerId)) {
+          listener.onChatMessage(message);
+        }
+      });
+      // TODO remove this._listeners.forEach(listener => listener.onChatMessage(message));
+    }
   }
 
   /**
@@ -297,43 +313,45 @@ export default class CoveyTownController {
   }
 
   /**
-   * Adds a mapping between a player and its corresponding socket to _socketSessionMap
-   *
-   * @param socket represents the socket associated with this player
-   * @param newPlayer represents the player associated with this socket
-   */
-  addPlayerSocketMapping(socket: Socket, newPlayer: Player): void {
-    this._socketSessionMap.set(newPlayer.id, socket);
-  }
-
-  /**
-   * Adds a Player to the chat
-   * @param playerID player ID of player to be added to chat
-   * @param chatID ID of chat at hand
+   * Adds Players to the chat
+   * @param playerIDs playerIDs of players to be added to chat
+   * @param chatID ID of chat
    * @returns if adding was successful
    */
-  addPlayerToChat(playerID: string, chatID: string): boolean {
+  addPlayersToChat(playerIDs: string[], chatID: string): boolean {
+    const newPlayers: string[] = [];
     const chat = this._chats.find(c => c.getChatID() === chatID);
     if (chat) {
-      chat.addPlayer(playerID);
+      playerIDs.forEach(playerID => {
+        chat.addPlayer(playerID);
+        newPlayers.push(playerID);
+      });
+      this._listeners.forEach(listener => {
+        if (chat.getPlayers().includes(listener.playerId)) {
+          listener.onPlayersAddedToChat(chat, newPlayers);
+        }
+      });
       return true;
     }
-    console.log('No chat matching the given chatID!');
     return false;
   }
 
   /**
    * Removes a player from the given chat
    *
-   * @param playerID represents the player we are removing
-   * @param chatID represents the chat we are removing the player from
+   * @param playerIDs represents the players we are removing
+   * @param chatID represents the chat we are removing the players from
    */
-  removePlayerFromChat(playerID: string, chatID: string): boolean {
+  removePlayersFromChat(playerIDs: string[], chatID: string): boolean {
     const chat = this._chats.find(c => c.getChatID() === chatID);
     if (chat) {
-      return this.removePlayerHelper(chat, playerID);
+      this._listeners.forEach(listener => {
+        if (chat.getPlayers().includes(listener.playerId)) {
+          listener.onPlayersRemovedFromChat(chat, playerIDs);
+        }
+      });
+      playerIDs.map(pl => this.removePlayerHelper(chat, pl));
     }
-    console.log('No chat matching the given chatID!');
     return false;
   }
 
@@ -347,7 +365,6 @@ export default class CoveyTownController {
   removePlayerHelper(chat: Chat, playerID: string): boolean {
     let success = true;
     if (!chat.removePlayer(playerID)) {
-      console.log('No player matching the given playerID in this chat!');
       success = false;
     }
     if (chat.getPlayers().length === 0) {
@@ -365,10 +382,16 @@ export default class CoveyTownController {
    *
    * @param authorID represents the unique ID of the chat's author
    * @param chatName represents the name of the chat
+   * @returns whether or not the chat was created successfully
    */
-  createChat(authorID: string, chatName: string): void {
+  createChat(authorID: string, chatName: string): Chat {
     const chat = new Chat(authorID, chatName);
     this._chats.push(chat);
+    const author = this._listeners.find(listener => listener.playerId === authorID);
+    if (author) {
+      author.onPlayersAddedToChat(chat, [authorID]);
+    }
+    return chat;
   }
 
   /**

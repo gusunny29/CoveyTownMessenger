@@ -4,9 +4,11 @@ import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
 import { ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage } from '../CoveyTypes';
+import Chat from '../types/Chat';
 
 const mockCoveyListenerTownDestroyed = jest.fn();
 const mockCoveyListenerOtherFns = jest.fn();
+const playerId: string = nanoid();
 
 function mockCoveyListener(): CoveyTownListener {
   return {
@@ -29,6 +31,14 @@ function mockCoveyListener(): CoveyTownListener {
     onChatMessage(message: ChatMessage){
       mockCoveyListenerOtherFns(message);
     },
+    onPlayersAddedToChat(chat: Chat, newPlayers: string[]){
+      mockCoveyListenerOtherFns(chat, newPlayers);
+    },
+    onPlayersRemovedFromChat(chat: Chat, removedPlayers: string[]){
+      mockCoveyListenerOtherFns(chat, removedPlayers);
+    },
+
+    playerId
   };
 }
 

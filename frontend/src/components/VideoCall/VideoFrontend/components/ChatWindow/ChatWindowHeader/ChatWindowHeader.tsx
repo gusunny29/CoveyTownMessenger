@@ -2,20 +2,26 @@ import { CloseButton, Flex, Heading, HStack, IconButton, useDisclosure } from '@
 import React from 'react';
 import useChatContext from '../../../hooks/useChatContext/useChatContext';
 import AddIcon from '../../../icons/AddIcon';
+import BackIcon from '../../../icons/BackIcon';
+import SettingsIcon from '../../../icons/SettingsIcon';
 import { CreateChatModal } from '../ChatModals/CreateChatModal';
+import { EditChatModal } from '../ChatModals/EditChatModal';
 
 export default function ChatWindowHeader({
-  title,
   showAddButton,
 }: {
-  title: string;
   showAddButton: boolean;
 }) {
-  const { setIsChatWindowOpen } = useChatContext();
+  const { setIsChatWindowOpen, setSelectedChat, selectedChat } = useChatContext();
   const {
     isOpen: isCreateChatModalOpen,
     onClose: onCloseCreateChatModal,
     onOpen: onOpenCreateChatModal,
+  } = useDisclosure();
+  const {
+    isOpen: isEditChatModalOpen,
+    onClose: onCloseEditChatModal,
+    onOpen: onOpenEditChatModal,
   } = useDisclosure();
 
   return (
@@ -26,14 +32,22 @@ export default function ChatWindowHeader({
       borderBottom='1px solid #E4E7E9'
       align='center'
       paddingX='1em'>
-      <Heading size='sm'>{title}</Heading>
+      {selectedChat && (
+          <IconButton
+            icon={<BackIcon />}
+            size='sm'
+            aria-label='back-to-chat-list'
+            onClick={() => setSelectedChat(null)}
+          />
+        )}
+      <Heading size='sm'>{selectedChat?._chatName ?? "Chat"}</Heading>
       <HStack>
         {showAddButton && (
           <IconButton
-            icon={<AddIcon />}
+            icon={selectedChat ? <SettingsIcon /> : <AddIcon />}
             size='sm'
             aria-label='new-chat'
-            onClick={onOpenCreateChatModal}
+            onClick={selectedChat ? onOpenEditChatModal : onOpenCreateChatModal}
           />
         )}
         <CloseButton onClick={() => setIsChatWindowOpen(false)} />
@@ -42,6 +56,11 @@ export default function ChatWindowHeader({
         isOpen={isCreateChatModalOpen}
         onClose={onCloseCreateChatModal}
         onOpen={onOpenCreateChatModal}
+      />
+      <EditChatModal
+        isOpen={isEditChatModalOpen}
+        onClose={onCloseEditChatModal}
+        onOpen={onOpenEditChatModal}
       />
     </Flex>
   );

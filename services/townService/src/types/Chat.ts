@@ -19,10 +19,10 @@ export default class Chat {
    *
    * @param authorID unique ID associated with the author of the chat
    */
-  public constructor(authorID: string, chatName: string) {
+  public constructor(authorID: string, chatName: string, chatID?: string) {
     this._authorID = authorID;
     this._recipientIDs.set(authorID, new Date());
-    this._chatID = nanoid();
+    this._chatID = chatID ?? nanoid();
     this._chatName = chatName;
   }
 
@@ -83,15 +83,9 @@ export default class Chat {
   }
 
   private findNewAuthorID(): string | undefined {
-    const oldestJoinDate = Array.from(this._recipientIDs.values()).sort((a, b) => {
-      if (a < b) {
-        return -1;
-      }
-      if (a > b) {
-        return 1;
-      }
-      return 0;
-    })[0];
+    const oldestJoinDate = Array.from(this._recipientIDs.values()).sort(
+      (a, b) => a.getTime() - b.getTime(),
+    )[0];
 
     return Array.from(this._recipientIDs.entries()).find(
       entry => entry[1].getTime() === oldestJoinDate.getTime(),

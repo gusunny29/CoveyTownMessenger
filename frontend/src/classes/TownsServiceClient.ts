@@ -1,7 +1,8 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
-import { ServerPlayer } from './Player';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { ServerConversationArea } from './ConversationArea';
+import { ServerPlayer } from './Player';
+import { ServerChat } from './TextConversation';
 
 /**
  * The format of a request to join a Town in Covey.Town, as dispatched by the server middleware
@@ -85,6 +86,26 @@ export interface ConversationCreateRequest {
   conversationArea: ServerConversationArea;
 }
 
+export interface ChatCreateRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  chatName: string;
+}
+
+export interface RemovePlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  playerIDs: string[];
+  chatID: string;
+}
+
+export interface AddPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  playerIDs: string[];
+  chatID: string;
+}
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -98,7 +119,7 @@ export type CoveyTownInfo = {
   friendlyName: string;
   coveyTownID: string;
   currentOccupancy: number;
-  maximumOccupancy: number
+  maximumOccupancy: number;
 };
 
 export default class TownsServiceClient {
@@ -115,7 +136,10 @@ export default class TownsServiceClient {
     this._axios = axios.create({ baseURL });
   }
 
-  static unwrapOrThrowError<T>(response: AxiosResponse<ResponseEnvelope<T>>, ignoreResponse = false): T {
+  static unwrapOrThrowError<T>(
+    response: AxiosResponse<ResponseEnvelope<T>>,
+    ignoreResponse = false,
+  ): T {
     if (response.data.isOK) {
       if (ignoreResponse) {
         return {} as T;
@@ -127,17 +151,25 @@ export default class TownsServiceClient {
   }
 
   async createTown(requestData: TownCreateRequest): Promise<TownCreateResponse> {
-    const responseWrapper = await this._axios.post<ResponseEnvelope<TownCreateResponse>>('/towns', requestData);
+    const responseWrapper = await this._axios.post<ResponseEnvelope<TownCreateResponse>>(
+      '/towns',
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
   async updateTown(requestData: TownUpdateRequest): Promise<void> {
-    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(`/towns/${requestData.coveyTownID}`, requestData);
+    const responseWrapper = await this._axios.patch<ResponseEnvelope<void>>(
+      `/towns/${requestData.coveyTownID}`,
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 
   async deleteTown(requestData: TownDeleteRequest): Promise<void> {
-    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(`/towns/${requestData.coveyTownID}/${requestData.coveyTownPassword}`);
+    const responseWrapper = await this._axios.delete<ResponseEnvelope<void>>(
+      `/towns/${requestData.coveyTownID}/${requestData.coveyTownPassword}`,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper, true);
   }
 
@@ -150,10 +182,36 @@ export default class TownsServiceClient {
     const responseWrapper = await this._axios.post('/sessions', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
-  
-  async createConversation(requestData: ConversationCreateRequest) : Promise<void>{
-    const responseWrapper = await this._axios.post(`/towns/${requestData.coveyTownID}/conversationAreas`, requestData);
+
+  async createConversation(requestData: ConversationCreateRequest): Promise<void> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/conversationAreas`,
+      requestData,
+    );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
+  async createChat(requestData: ChatCreateRequest): Promise<ServerChat> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/chats`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async removePlayersFromChat(requestData: RemovePlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.put(
+      `/towns/${requestData.coveyTownID}/chats/remove`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async addPlayersToChat(requestData: AddPlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.put(
+      `/towns/${requestData.coveyTownID}/chats/add`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
 }

@@ -1,5 +1,6 @@
 import { ServerConversationArea } from '../client/TownsServiceClient';
 import { ChatMessage } from '../CoveyTypes';
+import Chat from './Chat';
 import Player from './Player';
 
 /**
@@ -33,7 +34,7 @@ export default interface CoveyTownListener {
    * Called when a conversation area is created or updated
    * @param conversationArea the conversation area that is updated or created
    */
-  onConversationAreaUpdated(conversationArea: ServerConversationArea) : void;
+  onConversationAreaUpdated(conversationArea: ServerConversationArea): void;
 
   /**
    * Called when a conversation area is destroyed
@@ -46,4 +47,20 @@ export default interface CoveyTownListener {
    * @param message the new chat message
    */
   onChatMessage(message: ChatMessage): void;
+
+  /**
+   * Called when new players are added to a chat.
+   * @param chat the chat that the new players were added to
+   * @param newPlayers the new players that were added
+   */
+  onPlayersAddedToChat(chat: Chat, newPlayers: string[]): void;
+
+  /**
+   * Called when players are removed from a chat.
+   * @param chat the chat that the players were removed from
+   * @param removedPlayers the players that were removed
+   */
+  onPlayersRemovedFromChat(chat: Chat, removedPlayers: string[]): void;
+
+  playerId: string;
 }

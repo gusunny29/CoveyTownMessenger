@@ -13,13 +13,25 @@ export default class TextConversation {
 
   private _authorName: string;
 
+  _ownerID: string;
+
+  _occupants: string[];
+
+  _chatID: string;
+
+  _chatName: string;
+
   /**
    * Create a new Text Conversation
    *
    * @param socket socket to use to send/receive messages
    * @param authorName name of message author to use as sender
    */
-  public constructor(socket: Socket, authorName: string) {
+  public constructor(socket: Socket, authorName: string, chatID: string, chatName: string, ownerID: string) {
+    this._chatName = chatName;
+    this._chatID = chatID;
+    this._ownerID = ownerID;
+    this._occupants = [];
     this._socket = socket;
     this._authorName = authorName;
     this._socket.on('chatMessage', (message: ChatMessage) => {
@@ -38,6 +50,7 @@ export default class TextConversation {
    */
   public sendMessage(message: string) {
     const msg: ChatMessage = {
+      chatID: this._chatID,
       sid: nanoid(),
       body: message,
       author: this._authorName,
@@ -69,11 +82,41 @@ export default class TextConversation {
   public close(): void {
     this._socket.off('chatMessage');
   }
+
+  public static fromServerChat(socket: Socket, chat: ServerChat, myPlayerID: string): TextConversation {
+    return new TextConversation(socket, myPlayerID, chat._chatID, chat._chatName, chat._authorID);
+  }
+
+  public addPlayers(players: string[]) {
+    this._occupants = this._occupants.concat(players);
+  }
+
+  public removePlayers(players: string[]) {
+    this._occupants = this._occupants.filter(p => !players.includes(p));
+  }
 }
 type MessageCallback = (message: ChatMessage) => void;
 export type ChatMessage = {
+  chatID: string;
   author: string;
   sid: string;
   body: string;
   dateCreated: Date;
 };
+
+export interface ServerChat {
+  _chatID: string;
+  _recipientIDs: string[];
+  _authorID: string;
+  _chatName: string;
+}
+
+export interface PlayersAddedToChatEvent {
+  chat: ServerChat;
+  newPlayers: string[];
+}
+
+export interface PlayersRemovedFromChatEvent {
+  chat: ServerChat;
+  removedPlayers: string[];
+}
