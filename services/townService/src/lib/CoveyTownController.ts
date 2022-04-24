@@ -295,7 +295,6 @@ export default class CoveyTownController {
           listener.onChatMessage(message);
         }
       });
-      // TODO remove this._listeners.forEach(listener => listener.onChatMessage(message));
     }
   }
 

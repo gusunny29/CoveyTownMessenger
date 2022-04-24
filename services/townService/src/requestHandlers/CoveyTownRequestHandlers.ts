@@ -129,7 +129,7 @@ export interface RemovePlayersRequest {
  */
 export interface BlockPlayerRequest {
   coveyTownID: string;
-  blockingPlayerID: string;
+  sessionToken: string;
   blockedPlayerID: string;
 }
 
@@ -138,7 +138,7 @@ export interface BlockPlayerRequest {
  */
 export interface UnblockPlayerRequest {
   coveyTownID: string;
-  unblockingPlayerID: string;
+  sessionToken: string;
   unblockedPlayerID: string;
 }
 /**
@@ -342,8 +342,16 @@ export function blockPlayerHandler(
     };
   }
 
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
   const success = coveyTownController.blockPlayer(
-    requestData.blockingPlayerID,
+    session.player.id,
     requestData.blockedPlayerID,
   );
 
@@ -367,8 +375,16 @@ export function unblockPlayerHandler(
     };
   }
 
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
   const success = coveyTownController.unblockPlayer(
-    requestData.unblockingPlayerID,
+    session.player.id,
     requestData.unblockedPlayerID,
   );
 

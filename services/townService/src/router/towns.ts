@@ -174,7 +174,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     try {
       const result = await unblockPlayerHandler({
         coveyTownID: req.params.townID,
-        unblockingPlayerID: req.body.unblockPlayerID,
+        sessionToken: req.body.sessionToken,
         unblockedPlayerID: req.body.unblockedPlayerID,
       });
       res.status(StatusCodes.OK).json(result);
@@ -190,7 +190,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     try {
       const result = await blockPlayerHandler({
         coveyTownID: req.params.townID,
-        blockingPlayerID: req.body.blockingPlayerID,
+        sessionToken: req.body.sessionToken,
         blockedPlayerID: req.body.blockedPlayerID,
       });
       res.status(StatusCodes.OK).json(result);
