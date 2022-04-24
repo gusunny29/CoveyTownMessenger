@@ -169,7 +169,7 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
     }
   });
 
-  app.post('/towns/:townID/players', express.json(), async (req, res) => {
+  app.post('/towns/:townID/players/block', express.json(), async (req, res) => {
     try {
       const result = await blockPlayerHandler({
         coveyTownID: req.params.townID,
