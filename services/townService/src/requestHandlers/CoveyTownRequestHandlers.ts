@@ -104,7 +104,6 @@ export interface ChatCreateRequest {
   chatName: string;
 }
 
-
 /**
  * Payload sent by client to add players to an existing chat in Covey.Town
  */
@@ -415,6 +414,9 @@ function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener 
       socket.emit('playersRemovedFromChat', { chat, removedPlayers });
     },
     playerId,
+    onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string) {
+      socket.emit('playerBlocked', { blockingPlayerId, blockedPlayerID });
+    },
   };
 }
 
@@ -461,4 +463,8 @@ export function townSubscriptionHandler(socket: Socket): void {
   socket.on('playerMovement', (movementData: UserLocation) => {
     townController.updatePlayerLocation(s.player, movementData);
   });
+
+  // Register an event listener for the client socket: if the client blocks
+  // another player, add it to their list of blocked players
+  socket.on('playerBlocked', blockPlayerHandler);
 }

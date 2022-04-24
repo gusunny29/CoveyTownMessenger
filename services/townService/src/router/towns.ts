@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import io from 'socket.io';
 import {
   addPlayersHandler,
+  blockPlayerHandler,
   chatCreateHandler,
   conversationAreaCreateHandler,
   removePlayerHandler,
@@ -158,6 +159,22 @@ export default function addTownRoutes(http: Server, app: Express): io.Server {
         sessionToken: req.body.sessionToken,
         playerIDs: req.body.playerIDs,
         chatID: req.body.chatID,
+      });
+      res.status(StatusCodes.OK).json(result);
+    } catch (err) {
+      logError(err);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: 'Internal server error, please see log in server for more details',
+      });
+    }
+  });
+
+  app.post('/towns/:townID/players/block', express.json(), async (req, res) => {
+    try {
+      const result = await blockPlayerHandler({
+        coveyTownID: req.params.townID,
+        blockingPlayerID: req.body.blockingPlayerID,
+        blockedPlayerID: req.body.blockedPlayerID,
       });
       res.status(StatusCodes.OK).json(result);
     } catch (err) {
