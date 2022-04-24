@@ -104,6 +104,10 @@ export interface ChatCreateRequest {
   chatName: string;
 }
 
+
+/**
+ * Payload sent by client to add players to an existing chat in Covey.Town
+ */
 export interface AddPlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
@@ -111,11 +115,23 @@ export interface AddPlayersRequest {
   chatID: string;
 }
 
+/**
+ * Payload sent by client to remove players to an existing chat in Covey.Town
+ */
 export interface RemovePlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
   sessionToken: string;
   chatID: string;
+}
+
+/**
+ * Payload sent by client to block a player in Covey.Town
+ */
+export interface BlockPlayerRequest {
+  coveyTownID: string;
+  blockingPlayerID: string;
+  blockedPlayerID: string;
 }
 
 /**
@@ -303,6 +319,31 @@ export function removePlayerHandler(
     isOK: success,
     response: {},
     message: !success ? 'Unable to remove given player from given chat' : undefined,
+  };
+}
+
+export function blockPlayerHandler(
+  requestData: BlockPlayerRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+
+  const success = coveyTownController.blockPlayer(
+    requestData.blockingPlayerID,
+    requestData.blockedPlayerID,
+  );
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Unable to block player successfully' : undefined,
   };
 }
 

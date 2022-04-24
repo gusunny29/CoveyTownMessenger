@@ -18,6 +18,9 @@ export default class Player {
   /** The current ConversationArea that the player is in, or undefined if they are not located within one */
   private _activeConversationArea?: ServerConversationArea;
 
+  /** The current list of blocked player IDs for this player */
+  private _blockedPlayerIDs: string[]; 
+
   constructor(userName: string) {
     this.location = {
       x: 0,
@@ -27,6 +30,7 @@ export default class Player {
     };
     this._userName = userName;
     this._id = nanoid();
+    this._blockedPlayerIDs = [];
   }
 
   get userName(): string {
@@ -43,6 +47,14 @@ export default class Player {
 
   set activeConversationArea(conversationArea: ServerConversationArea | undefined) {
     this._activeConversationArea = conversationArea;
+  }
+
+  get getBlockedPlayerIDs(): string[] {
+    return this._blockedPlayerIDs;
+  }
+
+  addBlockedPlayerID(playerIDToBlock: string): void {
+    this._blockedPlayerIDs.push(playerIDToBlock);
   }
 
   /**
