@@ -1,14 +1,4 @@
-import {
-  Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-  Select,
-  Tag,
-  TagCloseButton,
-  TagLabel,
-} from '@chakra-ui/react';
+import { FormControl, FormHelperText, FormLabel, Input, useToast } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import useCoveyAppState from '../../../../../../hooks/useCoveyAppState';
 import useMaybeVideo from '../../../../../../hooks/useMaybeVideo';
@@ -29,6 +19,7 @@ export const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClos
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
 
   const video = useMaybeVideo();
+  const toast = useToast();
   const [textInputFocused, setTextInputFocused] = useState(false);
 
   useEffect(() => {
@@ -43,11 +34,26 @@ export const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClos
     if (apiClient && sessionToken && chatName) {
       apiClient
         .createChat({ sessionToken, chatName, coveyTownID: currentTownID })
-        .then((chat) => apiClient.addPlayersToChat({ sessionToken, coveyTownID: currentTownID, playerIDs: selectedPlayers, chatID: chat._chatID }))
+        .then(chat =>
+          apiClient.addPlayersToChat({
+            sessionToken,
+            coveyTownID: currentTownID,
+            playerIDs: selectedPlayers,
+            chatID: chat._chatID,
+          }),
+        )
         .then(() => {
           onClose();
         })
-        .catch(() => {});
+        .catch(() => {
+          toast({
+            title: 'Error',
+            description: 'Could not create chat.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        });
     }
   };
 
@@ -69,7 +75,11 @@ export const CreateChatModal: React.FC<CreateChatModalProps> = ({ isOpen, onClos
         />
         <FormHelperText>Give a name to your chat</FormHelperText>
       </FormControl>
-      <SelectChatPlayers selectedPlayers={selectedPlayers} setSelectedPlayers={setSelectedPlayers} ownerID={myPlayerID}/>
+      <SelectChatPlayers
+        selectedPlayers={selectedPlayers}
+        setSelectedPlayers={setSelectedPlayers}
+        ownerID={myPlayerID}
+      />
     </GenericManageChatModal>
   );
 };

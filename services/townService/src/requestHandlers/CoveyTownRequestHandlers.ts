@@ -256,8 +256,6 @@ export function addPlayersHandler(
     };
   }
 
-  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
-
   const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
   if (!session) {
     return {
@@ -265,6 +263,8 @@ export function addPlayersHandler(
       message: 'Error: Invalid session token',
     };
   }
+
+  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
 
   return {
     isOK: true,
