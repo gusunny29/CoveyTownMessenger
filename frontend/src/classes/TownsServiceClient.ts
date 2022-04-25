@@ -109,13 +109,13 @@ export interface AddPlayerRequest {
 export interface BlockPlayerRequest {
   coveyTownID: string;
   sessionToken: string;
-  blockedPlayer: string;
+  blockedPlayerID: string;
 }
 
 export interface UnblockPlayerRequest {
   coveyTownID: string;
   sessionToken: string;
-  unblockedPlayer: string;
+  unblockedPlayerID: string;
 }
 
 /**
@@ -228,7 +228,7 @@ export default class TownsServiceClient {
   }
 
   async blockPlayer(requestData: BlockPlayerRequest): Promise<boolean> {
-    const responseWrapper = await this._axios.put(
+    const responseWrapper = await this._axios.post(
       `/towns/${requestData.coveyTownID}/players/block`,
       requestData,
     );
@@ -236,7 +236,7 @@ export default class TownsServiceClient {
   }
 
   async unblockPlayer(requestData: UnblockPlayerRequest): Promise<boolean> {
-    const responseWrapper = await this._axios.put(
+    const responseWrapper = await this._axios.post(
       `/towns/${requestData.coveyTownID}/players/unblock`,
       requestData,
     );

@@ -28,7 +28,7 @@ const PeopleSettings: React.FC<PeopleSettingsProps> = ({ disabled }) => {
   const { isOpen, onClose, onToggle } = useDisclosure();
   const players = usePlayersInTown();
   const blockedPlayers = useBlockedPlayers();
-  const { apiClient, sessionToken, currentTownID } = useCoveyAppState();
+  const { apiClient, sessionToken, currentTownID, myPlayerID } = useCoveyAppState();
   const toast = useToast();
 
   const handleBlock = (playerId: string) => {
@@ -36,7 +36,7 @@ const PeopleSettings: React.FC<PeopleSettingsProps> = ({ disabled }) => {
       .blockPlayer({
         sessionToken,
         coveyTownID: currentTownID,
-        blockedPlayer: playerId,
+        blockedPlayerID: playerId,
       })
       .then(() => {
         onClose();
@@ -57,7 +57,7 @@ const PeopleSettings: React.FC<PeopleSettingsProps> = ({ disabled }) => {
       .unblockPlayer({
         sessionToken,
         coveyTownID: currentTownID,
-        unblockedPlayer: playerId,
+        unblockedPlayerID: playerId,
       })
       .then(() => {
         onClose();
@@ -91,23 +91,25 @@ const PeopleSettings: React.FC<PeopleSettingsProps> = ({ disabled }) => {
           <ModalCloseButton />
           <ModalBody>
             <List>
-              {players.map(player => {
-                const isBlocked = blockedPlayers.includes(player.id);
-                return (
-                  <ListItem key={player.id}>
-                    <HStack justify='space-between'>
-                      <Text>{player.userName}</Text>
-                      <Button
-                        colorScheme='red'
-                        onClick={() =>
-                          isBlocked ? handleUnblock(player.id) : handleBlock(player.id)
-                        }>
-                        {isBlocked ? 'Unblock' : 'Block'}
-                      </Button>
-                    </HStack>
-                  </ListItem>
-                );
-              })}
+              {players
+                .filter(player => player.id !== myPlayerID)
+                .map(player => {
+                  const isBlocked = blockedPlayers.includes(player.id);
+                  return (
+                    <ListItem key={player.id}>
+                      <HStack justify='space-between'>
+                        <Text>{player.userName}</Text>
+                        <Button
+                          colorScheme='red'
+                          onClick={() =>
+                            isBlocked ? handleUnblock(player.id) : handleBlock(player.id)
+                          }>
+                          {isBlocked ? 'Unblock' : 'Block'}
+                        </Button>
+                      </HStack>
+                    </ListItem>
+                  );
+                })}
             </List>
           </ModalBody>
           <ModalFooter>

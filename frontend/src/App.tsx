@@ -248,8 +248,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           blockedPlayerID: string;
           blockingPlayerId: string;
         }) => {
-          if (blockedPlayerID === gamePlayerID) {
-            setBlockedPlayers([...blockedPlayers, blockingPlayerId]);
+          if (blockingPlayerId === gamePlayerID) {
+            setBlockedPlayers([...blockedPlayers, blockedPlayerID]);
           }
         },
       );
@@ -262,8 +262,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
           unblockedPlayerID: string;
           unblockingPlayerId: string;
         }) => {
-          if (unblockedPlayerID === gamePlayerID) {
-            setBlockedPlayers(blockedPlayers.filter(id => id !== unblockingPlayerId));
+          if (unblockingPlayerId === gamePlayerID) {
+            setBlockedPlayers(blockedPlayers.filter(id => id !== unblockedPlayerID));
           }
         },
       );
