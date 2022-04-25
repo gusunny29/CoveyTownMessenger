@@ -106,6 +106,18 @@ export interface AddPlayerRequest {
   chatID: string;
 }
 
+export interface BlockPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  blockedPlayerID: string;
+}
+
+export interface UnblockPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  unblockedPlayerID: string;
+}
+
 /**
  * Envelope that wraps any response from the server
  */
@@ -210,6 +222,22 @@ export default class TownsServiceClient {
   async addPlayersToChat(requestData: AddPlayerRequest): Promise<boolean> {
     const responseWrapper = await this._axios.put(
       `/towns/${requestData.coveyTownID}/chats/add`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async blockPlayer(requestData: BlockPlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/players/block`,
+      requestData,
+    );
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async unblockPlayer(requestData: UnblockPlayerRequest): Promise<boolean> {
+    const responseWrapper = await this._axios.post(
+      `/towns/${requestData.coveyTownID}/players/unblock`,
       requestData,
     );
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);

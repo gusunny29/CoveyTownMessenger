@@ -294,7 +294,6 @@ export default class CoveyTownController {
           listener.onChatMessage(message);
         }
       });
-      // TODO remove this._listeners.forEach(listener => listener.onChatMessage(message));
     }
   }
 
@@ -392,5 +391,48 @@ export default class CoveyTownController {
       author.onPlayersAddedToChat(chat, [authorID]);
     }
     return chat;
+  }
+
+  /**
+   * Adds a player's id to the list of blocked player id's for a player
+   *
+   * @param blockingPlayerID represents the unique ID of blocking player
+   * @param blockedPlayerID represents the unique ID of the player to block
+   * @returns whether the player was successfully blocked
+   */
+  blockPlayer(blockingPlayerID: string, blockedPlayerID: string): boolean {
+    const blockingPlayer = this.players.find(p => p.id === blockingPlayerID);
+    const blockedPlayer = this.players.find(p => p.id === blockedPlayerID);
+    if (blockingPlayer && blockedPlayer) {
+      blockingPlayer.addBlockedPlayerID(blockedPlayerID);
+      this._listeners.forEach(listener => {
+        if (listener.playerId === blockingPlayerID) {
+          listener.onPlayerBlocked(blockingPlayerID, blockedPlayerID);
+        }
+      });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Removes a player from being blocked, so that messages and conversations can now be made with the unblocked player
+   * @param unblockingPlayerID unique ID of the player unblocking the blocked player
+   * @param unblockedPlayerID unique ID of the player being unblocked
+   * @returns whether the player was successfully unblocked
+   */
+  unblockPlayer(unblockingPlayerID: string, unblockedPlayerID: string): boolean {
+    const unblockingPlayer = this.players.find(p => p.id === unblockingPlayerID);
+    const unblockedPlayer = this.players.find(p => p.id === unblockedPlayerID);
+    if (unblockingPlayer && unblockedPlayer) {
+      unblockingPlayer.removeBlockedPlayerID(unblockedPlayerID);
+      this._listeners.forEach(listener => {
+        if (listener.playerId === unblockingPlayerID) {
+          listener.onPlayerUnblocked(unblockingPlayerID, unblockedPlayerID);
+        }
+      });
+      return true;
+    }
+    return false;
   }
 }

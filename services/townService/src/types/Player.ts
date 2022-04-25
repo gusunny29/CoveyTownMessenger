@@ -18,6 +18,9 @@ export default class Player {
   /** The current ConversationArea that the player is in, or undefined if they are not located within one */
   private _activeConversationArea?: ServerConversationArea;
 
+  /** The current list of blocked player IDs for this player */
+  private _blockedPlayerIDs: string[];
+
   constructor(userName: string) {
     this.location = {
       x: 0,
@@ -27,6 +30,7 @@ export default class Player {
     };
     this._userName = userName;
     this._id = nanoid();
+    this._blockedPlayerIDs = [];
   }
 
   get userName(): string {
@@ -45,15 +49,31 @@ export default class Player {
     this._activeConversationArea = conversationArea;
   }
 
+  get getBlockedPlayerIDs(): string[] {
+    return this._blockedPlayerIDs;
+  }
+
+  addBlockedPlayerID(playerIDToBlock: string): void {
+    this._blockedPlayerIDs.push(playerIDToBlock);
+  }
+
+  removeBlockedPlayerID(playerIDToUnblock: string): void {
+    this._blockedPlayerIDs.forEach((element, index) => {
+      if (element === playerIDToUnblock) {
+        this._blockedPlayerIDs.splice(index, 1);
+      }
+    });
+  }
+
   /**
    * Checks to see if a player's location is within the specified conversation area
-   * 
+   *
    * This method is resilient to floating point errors that could arise if any of the coordinates of
    * `this.location` are dramatically smaller than those of the conversation area's bounding box.
-   * @param conversation 
-   * @returns 
+   * @param conversation
+   * @returns
    */
-  isWithin(conversation: ServerConversationArea) : boolean {
+  isWithin(conversation: ServerConversationArea): boolean {
     return (
       this.location.x > conversation.boundingBox.x - conversation.boundingBox.width / 2 &&
       this.location.x < conversation.boundingBox.x + conversation.boundingBox.width / 2 &&
@@ -61,5 +81,4 @@ export default class Player {
       this.location.y < conversation.boundingBox.y + conversation.boundingBox.height / 2
     );
   }
-
 }

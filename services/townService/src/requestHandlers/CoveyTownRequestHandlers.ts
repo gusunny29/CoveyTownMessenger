@@ -104,6 +104,9 @@ export interface ChatCreateRequest {
   chatName: string;
 }
 
+/**
+ * Payload sent by client to add players to an existing chat in Covey.Town
+ */
 export interface AddPlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
@@ -111,6 +114,9 @@ export interface AddPlayersRequest {
   chatID: string;
 }
 
+/**
+ * Payload sent by client to remove players to an existing chat in Covey.Town
+ */
 export interface RemovePlayersRequest {
   coveyTownID: string;
   playerIDs: string[];
@@ -118,6 +124,23 @@ export interface RemovePlayersRequest {
   chatID: string;
 }
 
+/**
+ * Payload sent by client to block a player in Covey.Town
+ */
+export interface BlockPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  blockedPlayerID: string;
+}
+
+/**
+ * Payload sent by client to block a player in Covey.Town
+ */
+export interface UnblockPlayerRequest {
+  coveyTownID: string;
+  sessionToken: string;
+  unblockedPlayerID: string;
+}
 /**
  * A handler to process a player's request to join a town. The flow is:
  *  1. Client makes a TownJoinRequest, this handler is executed
@@ -256,8 +279,6 @@ export function addPlayersHandler(
     };
   }
 
-  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
-
   const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
   if (!session) {
     return {
@@ -265,6 +286,8 @@ export function addPlayersHandler(
       message: 'Error: Invalid session token',
     };
   }
+
+  coveyTownController.addPlayersToChat(requestData.playerIDs, requestData.chatID);
 
   return {
     isOK: true,
@@ -303,6 +326,72 @@ export function removePlayerHandler(
     isOK: success,
     response: {},
     message: !success ? 'Unable to remove given player from given chat' : undefined,
+  };
+}
+
+export function blockPlayerHandler(
+  requestData: BlockPlayerRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  const success = coveyTownController.blockPlayer(
+    session.player.id,
+    requestData.blockedPlayerID,
+  );
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Unable to block player successfully' : undefined,
+  };
+}
+
+export function unblockPlayerHandler(
+  requestData: UnblockPlayerRequest,
+): ResponseEnvelope<Record<string, null>> {
+  const townsStore = CoveyTownsStore.getInstance();
+
+  const coveyTownController = townsStore.getControllerForTown(requestData.coveyTownID);
+  if (!coveyTownController) {
+    return {
+      isOK: false,
+      message: 'Error: No such town',
+    };
+  }
+
+  const session = coveyTownController?.getSessionByToken(requestData.sessionToken);
+  if (!session) {
+    return {
+      isOK: false,
+      message: 'Error: Invalid session token',
+    };
+  }
+
+  const success = coveyTownController.unblockPlayer(
+    session.player.id,
+    requestData.unblockedPlayerID,
+  );
+
+  return {
+    isOK: success,
+    response: {},
+    message: !success ? 'Unable to unblock player successfully' : undefined,
   };
 }
 
@@ -374,6 +463,12 @@ function townSocketAdapter(socket: Socket, playerId: string): CoveyTownListener 
       socket.emit('playersRemovedFromChat', { chat, removedPlayers });
     },
     playerId,
+    onPlayerBlocked(blockingPlayerId: string, blockedPlayerID: string) {
+      socket.emit('playerBlocked', { blockingPlayerId, blockedPlayerID });
+    },
+    onPlayerUnblocked(unblockingPlayerID: string, unblockedPlayerID: string) {
+      socket.emit('playerUnblocked', { unblockingPlayerID, unblockedPlayerID });
+    },
   };
 }
 
