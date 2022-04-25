@@ -10,6 +10,8 @@ import addTownRoutes from '../router/towns';
 import * as requestHandlers from '../requestHandlers/CoveyTownRequestHandlers';
 import { createConversationForTesting } from './TestUtils';
 import TownsServiceClient, { ServerConversationArea } from './TownsServiceClient';
+import PlayerSession from '../types/PlayerSession';
+import Player from '../types/Player';
 
 type TestTownData = {
   friendlyName: string;
@@ -72,6 +74,8 @@ describe('Create Conversation Area API', () => {
 describe('Handlers', () => {
   const mockCoveyTownStore = mock<CoveyTownsStore>();
   const mockCoveyTownController = mock<CoveyTownController>();
+  const mockPlayerSession = mock<PlayerSession>();
+  const mockPlayer = mock<Player>();
   beforeAll(() => {
     // Set up a spy for CoveyTownsStore that will always return our mockCoveyTownsStore as the singleton instance
     jest.spyOn(CoveyTownsStore, 'getInstance').mockReturnValue(mockCoveyTownStore);
@@ -137,6 +141,22 @@ describe('Handlers', () => {
       expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(sessionToken);
       expect(mockCoveyTownController.createChat).not.toHaveBeenCalled();
     });
+
+    it('Successfully creates a chat when given valid input', () => {
+
+      // Make sure to return valid controller and player session token regardless of what town ID and session token given
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(mockCoveyTownController);
+      mockCoveyTownController.getSessionByToken.mockReturnValueOnce(mockPlayerSession);
+
+      requestHandlers.chatCreateHandler({
+        coveyTownID: mockCoveyTownController.coveyTownID,
+        sessionToken: mockPlayerSession.sessionToken,
+        chatName
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(mockCoveyTownController.coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(mockPlayerSession.sessionToken);
+      expect(mockCoveyTownController.createChat).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('addPlayerHandler', () => {
@@ -176,6 +196,23 @@ describe('Handlers', () => {
       expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(sessionToken);
       expect(mockCoveyTownController.addPlayersToChat).not.toHaveBeenCalled();
     });
+
+    it('Successfully adds a player to a chat when given valid input', () => {
+
+      // Make sure to return valid controller and player session token regardless of what town ID and session token given
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(mockCoveyTownController);
+      mockCoveyTownController.getSessionByToken.mockReturnValueOnce(mockPlayerSession);
+
+      requestHandlers.addPlayersHandler({
+        coveyTownID: mockCoveyTownController.coveyTownID,
+        playerIDs: [mockPlayer.id],
+        sessionToken: mockPlayerSession.sessionToken,
+        chatID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(mockCoveyTownController.coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(mockPlayerSession.sessionToken);
+      expect(mockCoveyTownController.addPlayersToChat).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('removePlayerHandler', () => {
@@ -214,10 +251,27 @@ describe('Handlers', () => {
       expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(sessionToken);
       expect(mockCoveyTownController.removePlayersFromChat).not.toHaveBeenCalled();
     });
+
+    it('Successfully removes a player from a chat when given valid input', () => {
+
+      // Make sure to return valid controller and player session token regardless of what town ID and session token given
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(mockCoveyTownController);
+      mockCoveyTownController.getSessionByToken.mockReturnValueOnce(mockPlayerSession);
+
+      requestHandlers.removePlayerHandler({
+        coveyTownID: mockCoveyTownController.coveyTownID,
+        playerIDs: [mockPlayer.id],
+        sessionToken: mockPlayerSession.sessionToken,
+        chatID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(mockCoveyTownController.coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(mockPlayerSession.sessionToken);
+      expect(mockCoveyTownController.removePlayersFromChat).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('blockPlayerHandler', () => {
-
+    
   });
 
   describe('unblockPlayerHandler', () => {
