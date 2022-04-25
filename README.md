@@ -45,3 +45,47 @@ Create a `.env` file in the `frontend` directory, with the line: `REACT_APP_TOWN
 
 In the `frontend` directory, run `npm start` (again, you'll need to run `npm install` the very first time). After several moments (or minutes, depending on the speed of your machine), a browser will open with the frontend running locally.
 The frontend will automatically re-compile and reload in your browser if you change any files in the `frontend/src` directory.
+
+Since we don't use any additional third-party services, the instructions for deploying our project are the same as the original directions provided to deploy the project. See the above on how to set up Twilio/Heroku.
+Here are instructions on how to run the tests we have written for our project:
+
+1. cd to the services/townService/src/client folder
+2. npm run test
+3. cd to the services/townService/src/lib folder
+4. npm run test
+
+Here is our feature walkthrough:
+
+Features Walkthrough:
+Clink on link to our deployed site here: https://6265f3191aae251acc38b4aa--elegant-liger-2bdf78.netlify.app/
+
+To Create a Group Chat:
+
+1. Create a username and town.
+2. Click on the link again and join the same town from a new tab.
+3. On the right hand side of the screen, scroll down until the menu bar at the bottom is visible.
+4. Click the 'Chat' Icon
+5. Click the '+' Button to create a new chat
+6. Type in your chat name.
+7. Add the other user to the chat from the dropdown and select 'Save'.
+8. Click on the new chat.
+9. Type in a message and view it from the other tab.
+   Note: The Group Chat creator will have a settings icon next to the chat name where they can add or remove players.
+
+To Block/Unblock a Player:
+
+1. Create a username and town.
+2. Click on the link again and join the same town from a new tab.
+3. On the right hand side of the screen, scroll down until the menu bar at the bottom is visible.
+4. Click the 'Chat' Icon
+5. Click the '+' Button to create a new chat
+6. Type in your chat name.
+7. Add the other user to the chat from the dropdown and select 'Save'.
+8. Click on the new chat.
+9. Type in a message and view it from the other tab.
+10. Close the Chat Window
+11. Click on the people icon on the bottom menu bar.
+12. Click 'Block' to block the player.
+13. Switch to the other tab and type in a message
+14. Switch back to original tab and message will not appear.
+15. To unblock, click people icon on bottom menu bar and click 'unblock' button.
