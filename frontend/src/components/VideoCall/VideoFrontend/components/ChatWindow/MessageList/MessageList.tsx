@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChatMessage } from '../../../../../../classes/TextConversation';
+import useBlockedPlayers from '../../../../../../hooks/useBlockedPlayers';
 import usePlayersInTown from '../../../../../../hooks/usePlayersInTown';
 import useVideoContext from '../../../hooks/useVideoContext/useVideoContext';
 import MessageInfo from './MessageInfo/MessageInfo';
@@ -20,6 +21,7 @@ export default function MessageList({ messages = [] }: MessageListProps) {
   const localParticipant = room!.localParticipant;
 
   const players = usePlayersInTown();
+  const blockedPlayers = useBlockedPlayers();
 
   return (
     <MessageListScrollContainer messages={messages}>
@@ -34,6 +36,10 @@ export default function MessageList({ messages = [] }: MessageListProps) {
         const isLocalParticipant = localParticipant.identity === message.author;
 
         const profile = players.find(p => p.id == message.author);
+
+        if (blockedPlayers.includes(message.author)) {
+          return null;
+        }
 
         return (
           <React.Fragment key={message.sid}>

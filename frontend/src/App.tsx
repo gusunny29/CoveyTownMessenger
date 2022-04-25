@@ -28,6 +28,7 @@ import { Callback } from './components/VideoCall/VideoFrontend/types';
 import useConnectionOptions from './components/VideoCall/VideoFrontend/utils/useConnectionOptions/useConnectionOptions';
 import VideoOverlay from './components/VideoCall/VideoOverlay/VideoOverlay';
 import WorldMap from './components/world/WorldMap';
+import BlockedPlayersContext from './contexts/BlockedPlayersContext';
 import ConversationAreasContext from './contexts/ConversationAreasContext';
 import CoveyAppContext from './contexts/CoveyAppContext';
 import NearbyPlayersContext from './contexts/NearbyPlayersContext';
@@ -127,6 +128,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
   const [appState, dispatchAppUpdate] = useReducer(appStateReducer, defaultAppState());
   const [playerMovementCallbacks] = useState<PlayerMovementCallback[]>([]);
   const [playersInTown, setPlayersInTown] = useState<Player[]>([]);
+  const [blockedPlayers, setBlockedPlayers] = useState<string[]>([]);
   const [nearbyPlayers, setNearbyPlayers] = useState<Player[]>([]);
   // const [currentLocation, setCurrentLocation] = useState<UserLocation>({moving: false, rotation: 'front', x: 0, y: 0});
   const [conversationAreas, setConversationAreas] = useState<ConversationArea[]>([]);
@@ -237,6 +239,34 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         setConversationAreas(localConversationAreas);
         recalculateNearbyPlayers();
       });
+      socket.on(
+        'playerBlocked',
+        ({
+          blockedPlayerID,
+          blockingPlayerId,
+        }: {
+          blockedPlayerID: string;
+          blockingPlayerId: string;
+        }) => {
+          if (blockingPlayerId === gamePlayerID) {
+            setBlockedPlayers([...blockedPlayers, blockedPlayerID]);
+          }
+        },
+      );
+      socket.on(
+        'playerUnblocked',
+        ({
+          unblockedPlayerID,
+          unblockingPlayerID,
+        }: {
+          unblockedPlayerID: string;
+          unblockingPlayerID: string;
+        }) => {
+          if (unblockingPlayerID === gamePlayerID) {
+            setBlockedPlayers(blockedPlayers.filter(id => id !== unblockedPlayerID));
+          }
+        },
+      );
       dispatchAppUpdate({
         action: 'doConnect',
         data: {
@@ -293,11 +323,13 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         <ChatProvider>
           <PlayerMovementContext.Provider value={playerMovementCallbacks}>
             <PlayersInTownContext.Provider value={playersInTown}>
-              <NearbyPlayersContext.Provider value={nearbyPlayers}>
-                <ConversationAreasContext.Provider value={conversationAreas}>
-                  {page}
-                </ConversationAreasContext.Provider>
-              </NearbyPlayersContext.Provider>
+              <BlockedPlayersContext.Provider value={blockedPlayers}>
+                <NearbyPlayersContext.Provider value={nearbyPlayers}>
+                  <ConversationAreasContext.Provider value={conversationAreas}>
+                    {page}
+                  </ConversationAreasContext.Provider>
+                </NearbyPlayersContext.Provider>
+              </BlockedPlayersContext.Provider>
             </PlayersInTownContext.Provider>
           </PlayerMovementContext.Provider>
         </ChatProvider>
