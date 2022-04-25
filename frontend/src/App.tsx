@@ -257,12 +257,12 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         'playerUnblocked',
         ({
           unblockedPlayerID,
-          unblockingPlayerId,
+          unblockingPlayerID,
         }: {
           unblockedPlayerID: string;
-          unblockingPlayerId: string;
+          unblockingPlayerID: string;
         }) => {
-          if (unblockingPlayerId === gamePlayerID) {
+          if (unblockingPlayerID === gamePlayerID) {
             setBlockedPlayers(blockedPlayers.filter(id => id !== unblockedPlayerID));
           }
         },

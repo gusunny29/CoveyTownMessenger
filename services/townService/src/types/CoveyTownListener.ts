@@ -75,5 +75,5 @@ export default interface CoveyTownListener {
    * Called when a player is unblocked
    */
 
-  onPlayerUnblocked(unblockingPlayerID: string, unblockedPlayers: string): void;
+  onPlayerUnblocked(unblockingPlayerID: string, unblockedPlayer: string): void;
 }
