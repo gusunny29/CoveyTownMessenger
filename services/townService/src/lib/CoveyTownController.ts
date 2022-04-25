@@ -407,7 +407,9 @@ export default class CoveyTownController {
     if (blockingPlayer && blockedPlayer) {
       blockingPlayer.addBlockedPlayerID(blockedPlayerID);
       this._listeners.forEach(listener => {
-        listener.onPlayerBlocked(blockingPlayerID, blockedPlayerID);
+        if (listener.playerId === blockingPlayerID) {
+          listener.onPlayerUnblocked(blockingPlayerID, blockingPlayerID);
+        }
       });
       return true;
     }
@@ -426,7 +428,9 @@ export default class CoveyTownController {
     if (unblockingPlayer && unblockedPlayer) {
       unblockingPlayer.removeBlockedPlayerID(unblockedPlayerID);
       this._listeners.forEach(listener => {
-        listener.onPlayerUnblocked(unblockingPlayerID, unblockedPlayerID);
+        if (listener.playerId === unblockingPlayerID) {
+          listener.onPlayerUnblocked(unblockingPlayerID, unblockedPlayerID);
+        }
       });
       return true;
     }
