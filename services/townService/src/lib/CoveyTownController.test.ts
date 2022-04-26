@@ -347,7 +347,6 @@ describe('CoveyTownController', () => {
       const player2 = new Player(nanoid());
       const player3 = new Player(nanoid());
       const player4 = new Player(nanoid());
-      const testDate = new Date();
 
       const testChat = testingTown.createChat(player1.id, 'Test Chat');
       const result = testingTown.addPlayersToChat([player2.id, player3.id], testChat.getChatID());
@@ -366,6 +365,22 @@ describe('CoveyTownController', () => {
       testingTown = new CoveyTownController(townName, false);
     });
 
+    it('Should remove the players from the list of players within the chat', () => {
+      const player1 = new Player(nanoid());
+      const player2 = new Player(nanoid());
+      const player3 = new Player(nanoid());
+      const player4 = new Player(nanoid());
+
+      const testChat = testingTown.createChat(player1.id, 'Test Chat');
+      const result1 = testingTown.addPlayersToChat([player2.id, player3.id, player4.id], testChat.getChatID());
+      expect(result1).toBe(true);
+      const result2 = testingTown.removePlayersFromChat([player2.id, player3.id], testChat.getChatID());
+      expect(result2).toBe(true);
+      expect(testChat.getPlayers()).toContain(player1.id);
+      expect(testChat.getPlayers()).not.toContain(player2.id);
+      expect(testChat.getPlayers()).not.toContain(player3.id);
+      expect(testChat.getPlayers()).toContain(player4.id);
+    });
   });
 
   describe('createChat', () => {
@@ -375,6 +390,16 @@ describe('CoveyTownController', () => {
       testingTown = new CoveyTownController(townName, false);
     });
 
+    it('Should add the new chat to the list of chats, and add the author of the chat as a chat member', () => {
+      const player1 = new Player(nanoid());
+
+      const testChat = testingTown.createChat(player1.id, 'Test Chat');
+
+      const chats = testingTown.chats;
+      expect(chats.length).toBe(2); // Should be 2 because global chat is created by default
+      expect(chats[1].getChatID()).toBe(testChat.getChatID());
+      expect(chats[1].getChatName()).toBe(testChat.getChatName());
+    });
   });
 
   describe('blockPlayer', () => {
