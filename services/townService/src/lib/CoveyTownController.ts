@@ -57,6 +57,10 @@ export default class CoveyTownController {
     return this._conversationAreas;
   }
 
+  get chats(): Chat[] {
+    return this._chats;
+  }
+
   /** The list of players currently in the town * */
   private _players: Player[] = [];
 
@@ -340,6 +344,7 @@ export default class CoveyTownController {
    *
    * @param playerIDs represents the players we are removing
    * @param chatID represents the chat we are removing the players from
+   * @returns if adding was successful
    */
   removePlayersFromChat(playerIDs: string[], chatID: string): boolean {
     const chat = this._chats.find(c => c.getChatID() === chatID);
@@ -350,6 +355,7 @@ export default class CoveyTownController {
         }
       });
       playerIDs.map(pl => this.removePlayerHelper(chat, pl));
+      return true;
     }
     return false;
   }
