@@ -11,6 +11,7 @@ import { townSubscriptionHandler } from '../requestHandlers/CoveyTownRequestHand
 import CoveyTownsStore from './CoveyTownsStore';
 import * as TestUtils from '../client/TestUtils';
 import Chat from '../types/Chat';
+import { identical } from 'ramda';
 
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
@@ -418,5 +419,38 @@ describe('CoveyTownController', () => {
       testingTown = new CoveyTownController(townName, false);
     });
 
+    it('Should call removeBlockedPlayerID on the approriate player with the appropriate player input, and should emit an onPlayerUnblocked to the player doing the ublocking', () => {
+      const player1 = new Player(nanoid());
+      const player2 = new Player(nanoid());
+
+      testingTown.addPlayer(player1);
+      testingTown.addPlayer(player2);
+
+      const result1 = testingTown.blockPlayer(player1.id, player2.id);
+      expect(result1).toBe(true);
+      expect(player1.getBlockedPlayerIDs.length).toBe(1);
+      expect(player1.getBlockedPlayerIDs).toContain(player2.id);
+      const result2 = testingTown.unblockPlayer(player1.id, player2.id);
+      expect(result2).toBe(true);
+      expect(player1.getBlockedPlayerIDs.length).toBe(0);
+    });
+
+    it('Should return false when a player tries to unblock a player that does not exist in the town, or when a player that does not exist in the town tries to unblock a player', () => {
+      const player1 = new Player(nanoid());
+      const player2 = new Player(nanoid());
+      const player3 = new Player(nanoid());
+
+      testingTown.addPlayer(player1);
+      testingTown.addPlayer(player2);
+
+      const result1 = testingTown.blockPlayer(player1.id, player2.id);
+      expect(result1).toBe(true);
+      const result2 = testingTown.unblockPlayer(player1.id, player3.id);
+      expect(result2).toBe(false);
+      expect(player1.getBlockedPlayerIDs.length).toBe(1);
+      expect(player1.getBlockedPlayerIDs).toContain(player2.id);
+      const result3 = testingTown.unblockPlayer(player3.id, player1.id);
+      expect(result3).toBe(false);
+    })
   });
 });
