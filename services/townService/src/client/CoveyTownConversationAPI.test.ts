@@ -241,6 +241,7 @@ describe('Handlers', () => {
 
       // Make sure to return 'undefined' regardless of what town ID is passed
       mockCoveyTownController.getSessionByToken.mockReturnValue(undefined);
+
       requestHandlers.removePlayerHandler({
         coveyTownID,
         playerIDs,
@@ -271,10 +272,108 @@ describe('Handlers', () => {
   });
 
   describe('blockPlayerHandler', () => {
+    const coveyTownID = nanoid();
+    const sessionToken = nanoid();
+    const blockedPlayerID = nanoid();
     
+    it('Checks that the town exists before blocking a player', () => {
+
+      // Make sure to return 'undefined' regardless of what town ID is passed
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(undefined);
+
+      requestHandlers.blockPlayerHandler({
+        coveyTownID,
+        sessionToken,
+        blockedPlayerID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).not.toHaveBeenCalled();
+      expect(mockCoveyTownController.blockPlayer).not.toHaveBeenCalled();
+    });
+
+    it('Checks that the session token is valid before blocking a player', () => {
+
+      // Make sure to return 'undefined' regardless of what town ID is passed
+      mockCoveyTownController.getSessionByToken.mockReturnValue(undefined);
+
+      requestHandlers.blockPlayerHandler({
+        coveyTownID,
+        sessionToken,
+        blockedPlayerID
+      });
+      
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(sessionToken);
+      expect(mockCoveyTownController.blockPlayer).not.toHaveBeenCalled();
+    });
+
+    it('Successfully blocks a player when given valid input', () => {
+
+      // Make sure to return valid controller and player session token regardless of what town ID and session token given
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(mockCoveyTownController);
+      mockCoveyTownController.getSessionByToken.mockReturnValueOnce(mockPlayerSession);
+
+      requestHandlers.blockPlayerHandler({
+        coveyTownID: mockCoveyTownController.coveyTownID,
+        sessionToken: mockPlayerSession.sessionToken,
+        blockedPlayerID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(mockCoveyTownController.coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(mockPlayerSession.sessionToken);
+      expect(mockCoveyTownController.blockPlayer).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('unblockPlayerHandler', () => {
+    const coveyTownID = nanoid();
+    const sessionToken = nanoid();
+    const unblockedPlayerID = nanoid();
+    
+    it('Checks that the town exists before unblocking a player', () => {
 
+      // Make sure to return 'undefined' regardless of what town ID is passed
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(undefined);
+
+      requestHandlers.unblockPlayerHandler({
+        coveyTownID,
+        sessionToken,
+        unblockedPlayerID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).not.toHaveBeenCalled();
+      expect(mockCoveyTownController.unblockPlayer).not.toHaveBeenCalled();
+    });
+
+    it('Checks that the session token is valid before unblocking a player', () => {
+
+      // Make sure to return 'undefined' regardless of what town ID is passed
+      mockCoveyTownController.getSessionByToken.mockReturnValue(undefined);
+
+      requestHandlers.unblockPlayerHandler({
+        coveyTownID,
+        sessionToken,
+        unblockedPlayerID
+      });
+      
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(sessionToken);
+      expect(mockCoveyTownController.unblockPlayer).not.toHaveBeenCalled();
+    });
+
+    it('Successfully unblocks a player when given valid input', () => {
+
+      // Make sure to return valid controller and player session token regardless of what town ID and session token given
+      mockCoveyTownStore.getControllerForTown.mockReturnValueOnce(mockCoveyTownController);
+      mockCoveyTownController.getSessionByToken.mockReturnValueOnce(mockPlayerSession);
+
+      requestHandlers.unblockPlayerHandler({
+        coveyTownID: mockCoveyTownController.coveyTownID,
+        sessionToken: mockPlayerSession.sessionToken,
+        unblockedPlayerID
+      });
+      expect(mockCoveyTownStore.getControllerForTown).toBeCalledWith(mockCoveyTownController.coveyTownID);
+      expect(mockCoveyTownController.getSessionByToken).toBeCalledWith(mockPlayerSession.sessionToken);
+      expect(mockCoveyTownController.unblockPlayer).toHaveBeenCalledTimes(1);
+    });
   });
 });

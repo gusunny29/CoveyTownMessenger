@@ -10,6 +10,7 @@ import PlayerSession from '../types/PlayerSession';
 import { townSubscriptionHandler } from '../requestHandlers/CoveyTownRequestHandlers';
 import CoveyTownsStore from './CoveyTownsStore';
 import * as TestUtils from '../client/TestUtils';
+import Chat from '../types/Chat';
 
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
@@ -288,5 +289,109 @@ describe('CoveyTownController', () => {
       testingTown.updatePlayerLocation(player, newLocation);
       expect(mockListener.onConversationAreaUpdated).toHaveBeenCalledTimes(1);
     });
+  });
+
+  describe('onChatMessage', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+
+    it('Should emit an onChatMessage even to every player in the chat when recieving a chat message', () => {
+      const player1 = new Player(nanoid());
+      const player2 = new Player(nanoid());
+      const player3 = new Player(nanoid());
+      const player4 = new Player(nanoid());
+      const testDate = new Date();
+
+      const testChat = testingTown.createChat(player1.id, 'Test Chat');
+      const result = testingTown.addPlayersToChat([player2.id, player3.id], testChat.getChatID());
+      expect(result).toBe(true);
+
+      const mockPlayer2Listener = mock<CoveyTownListener>();
+      mockPlayer2Listener.playerId = player2.id;
+      const mockPlayer3Listener = mock<CoveyTownListener>();
+      mockPlayer3Listener.playerId = player3.id;
+      const mockPlayer4Listener = mock<CoveyTownListener>();
+      mockPlayer4Listener.playerId = player4.id;
+      testingTown.addTownListener(mockPlayer2Listener);
+      testingTown.addTownListener(mockPlayer3Listener);
+      testingTown.addTownListener(mockPlayer4Listener);
+
+      testingTown.onChatMessage(
+        {
+          chatID: testChat.getChatID(),
+          author: player1.id,
+          sid: nanoid(),
+          body: 'Test Message',
+          dateCreated: testDate
+        }
+      );
+
+      expect(mockPlayer2Listener.onChatMessage).toHaveBeenCalledTimes(1);
+      expect(mockPlayer3Listener.onChatMessage).toHaveBeenCalledTimes(1);
+      expect(mockPlayer4Listener.onChatMessage).toHaveBeenCalledTimes(0);
+    });
+  });
+  
+  describe('addPlayersToChat', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+    
+    it('Should add the players to the list of players within the chat', () => {
+      const player1 = new Player(nanoid());
+      const player2 = new Player(nanoid());
+      const player3 = new Player(nanoid());
+      const player4 = new Player(nanoid());
+      const testDate = new Date();
+
+      const testChat = testingTown.createChat(player1.id, 'Test Chat');
+      const result = testingTown.addPlayersToChat([player2.id, player3.id], testChat.getChatID());
+      expect(result).toBe(true);
+      expect(testChat.getPlayers()).toContain(player1.id);
+      expect(testChat.getPlayers()).toContain(player2.id);
+      expect(testChat.getPlayers()).toContain(player3.id);
+      expect(testChat.getPlayers()).not.toContain(player4.id);
+    });
+  });
+
+  describe('removePlayersFromChat', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+
+  });
+
+  describe('createChat', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+
+  });
+
+  describe('blockPlayer', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+
+  });
+
+  describe('unblockPlayer', () => {
+    let testingTown: CoveyTownController;
+    beforeEach(() => {
+      const townName = `updatePlayerLocation test town ${nanoid()}`;
+      testingTown = new CoveyTownController(townName, false);
+    });
+
   });
 });
