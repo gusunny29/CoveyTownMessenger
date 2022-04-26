@@ -355,7 +355,7 @@ export default class CoveyTownController {
         }
       });
       playerIDs.map(pl => this.removePlayerHelper(chat, pl));
-      return true
+      return true;
     }
     return false;
   }
